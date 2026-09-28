@@ -16,9 +16,9 @@ function db_admin_default_credentials(): array
         'online' => [
             'host' => 'localhost',
             'port' => '3306',
-            'name' => 'mlmplan_db',
-            'user' => 'mlmplan_db',
-            'pass' => 'Tf&pW4vhzxMf2%6j',
+            'name' => 'earnhealth_db',
+            'user' => 'earnhealth_db',
+            'pass' => 'fEP@D?pfot5aec81',
         ],
         'offline' => [
             'host' => 'localhost',

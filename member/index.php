@@ -1,10 +1,14 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
 
-if (empty($_SESSION['member_id'])) {
-    header('Location: ../admin/direct-member-login.php');
+// Full Member portal is located in /user/
+if (!empty($_SESSION['user_id'])) {
+    header('Location: ../user/index.php');
     exit;
 }
+header('Location: ../user/login.php');
+exit;
+
 
 session_enforce_idle('member', '../admin/direct-member-login.php');
 if (!empty($_SESSION['admin_id'])) {

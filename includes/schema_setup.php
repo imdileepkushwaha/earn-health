@@ -110,12 +110,12 @@ function mlm_run_schema_setup(PDO $pdo): array
     $before = mlm_schema_status($pdo);
     $hasAdmins = in_array('admins', array_map('strtolower', $before['existing']), true);
 
-    $base = dirname(__DIR__) . '/sql/binarymlm_db_live.sql';
+    $base = dirname(__DIR__) . '/sql/earnhealth_db.sql';
     if (!is_file($base)) {
-        $base = dirname(__DIR__) . '/sql/binarymlm_db.sql';
+        $base = dirname(__DIR__) . '/sql/earnhealth_db.sql';
     }
     if (!is_file($base) && !$hasAdmins) {
-        throw new RuntimeException('SQL file missing: sql/binarymlm_db_live.sql');
+        throw new RuntimeException('SQL file missing: sql/earnhealth_db_live.sql');
     }
 
     // Base schema only when core table missing (avoids duplicate seed INSERT errors)
@@ -154,10 +154,10 @@ function mlm_run_schema_setup(PDO $pdo): array
             $any = $pdo->query('SELECT id FROM admins ORDER BY id ASC LIMIT 1')->fetch(PDO::FETCH_ASSOC);
             if ($any) {
                 $pdo->prepare('UPDATE admins SET username = ?, email = ?, password = ?, full_name = ?, status = ? WHERE id = ?')
-                    ->execute(['admin', 'admin@binarymlm.com', $adminHash, 'Client Admin', 'active', $any['id']]);
+                    ->execute(['admin', 'admin@earnhealth.in', $adminHash, 'Client Admin', 'active', $any['id']]);
             } else {
                 $pdo->prepare('INSERT INTO admins (username, email, password, full_name, status) VALUES (?, ?, ?, ?, ?)')
-                    ->execute(['admin', 'admin@binarymlm.com', $adminHash, 'Client Admin', 'active']);
+                    ->execute(['admin', 'admin@earnhealth.in', $adminHash, 'Client Admin', 'active']);
             }
         }
     } catch (Throwable $e) {

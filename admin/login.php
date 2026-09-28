@@ -84,13 +84,13 @@ $favUrl = function_exists('company_favicon_url') ? company_favicon_url() : null;
         <div class="auth-brand-inner">
             <div class="auth-mark">
                 <?php if ($logoUrl): ?>
-                <img src="<?= e($logoUrl) ?>" alt="<?= e($company) ?>" style="width:100%;height:100%;object-fit:contain;border-radius:14px">
+                <img src="<?= e($logoUrl) ?>" alt="<?= e($company) ?>" style="width:100%;height:100%;object-fit:contain;">
                 <?php else: ?>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
                 <?php endif; ?>
             </div>
             <p class="auth-kicker">Admin Panel</p>
-            <h1 class="auth-company"><?= e($company) ?></h1>
+            <h1 class="auth-company" style="display:none"><?= e($company) ?></h1>
             <p class="auth-tagline">Manage members, commissions, products and payouts from one secure dashboard.</p>
         </div>
     </div>

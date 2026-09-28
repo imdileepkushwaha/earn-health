@@ -7,7 +7,7 @@
 $host = 'localhost';
 $user = 'root';
 $pass = '';
-$dbName = 'binarymlm_db';
+$dbName = 'earnhealth_db';
 
 $error = '';
 $success = '';
@@ -16,10 +16,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $host = trim($_POST['db_host'] ?? 'localhost');
     $user = trim($_POST['db_user'] ?? 'root');
     $pass = $_POST['db_pass'] ?? '';
-    $dbName = trim($_POST['db_name'] ?? 'binarymlm_db');
+    $dbName = trim($_POST['db_name'] ?? 'earnhealth_db');
     $adminUser = trim($_POST['admin_user'] ?? 'admin');
     $adminPass = $_POST['admin_pass'] ?? 'admin123';
-    $adminEmail = trim($_POST['admin_email'] ?? 'admin@binarymlm.com');
+    $adminEmail = trim($_POST['admin_email'] ?? 'admin@earnhealth.in');
 
     try {
         $pdo = new PDO("mysql:host=$host;dbname=$dbName;charset=utf8mb4", $user, $pass, [
@@ -89,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <label>Admin Username</label>
         <input type="text" name="admin_user" value="admin" required>
         <label>Admin Email</label>
-        <input type="email" name="admin_email" value="admin@binarymlm.com" required>
+        <input type="email" name="admin_email" value="admin@earnhealth.in" required>
         <label>Admin Password</label>
         <input type="password" name="admin_pass" value="admin123" required>
         <button type="submit" class="btn btn-primary btn-block">Install Now</button>

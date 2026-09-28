@@ -21,6 +21,64 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'sponsor') {
     exit;
 }
 
+// AJAX duplicate field validation
+if (isset($_GET['ajax']) && $_GET['ajax'] === 'check_duplicate') {
+    header('Content-Type: application/json; charset=utf-8');
+    $field = trim((string) ($_GET['field'] ?? ''));
+    $value = trim((string) ($_GET['value'] ?? ''));
+    $excludeId = (int) ($_GET['exclude_id'] ?? 0);
+
+    $allowed = ['email', 'phone', 'aadhaar_no', 'pan_no', 'gst_no', 'username'];
+    if (!in_array($field, $allowed, true) || $value === '') {
+        echo json_encode(['ok' => true, 'is_duplicate' => false]);
+        exit;
+    }
+
+    $sql = '';
+    $params = [];
+    if ($field === 'aadhaar_no') {
+        $clean = str_replace(' ', '', $value);
+        $sql = "SELECT franchisee_code, name FROM franchisees WHERE REPLACE(aadhaar_no, ' ', '') = ?" . ($excludeId > 0 ? " AND id != ?" : "") . " LIMIT 1";
+        $params = $excludeId > 0 ? [$clean, $excludeId] : [$clean];
+    } elseif ($field === 'pan_no') {
+        $clean = strtoupper($value);
+        $sql = "SELECT franchisee_code, name FROM franchisees WHERE UPPER(TRIM(pan_no)) = ?" . ($excludeId > 0 ? " AND id != ?" : "") . " LIMIT 1";
+        $params = $excludeId > 0 ? [$clean, $excludeId] : [$clean];
+    } elseif ($field === 'gst_no') {
+        $clean = strtoupper($value);
+        $sql = "SELECT franchisee_code, name FROM franchisees WHERE UPPER(TRIM(gst_no)) = ?" . ($excludeId > 0 ? " AND id != ?" : "") . " LIMIT 1";
+        $params = $excludeId > 0 ? [$clean, $excludeId] : [$clean];
+    } else {
+        $sql = "SELECT franchisee_code, name FROM franchisees WHERE {$field} = ?" . ($excludeId > 0 ? " AND id != ?" : "") . " LIMIT 1";
+        $params = $excludeId > 0 ? [$value, $excludeId] : [$value];
+    }
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($row) {
+        $labels = [
+            'email' => 'Email',
+            'phone' => 'Mobile number',
+            'aadhaar_no' => 'Aadhaar Number',
+            'pan_no' => 'PAN Number',
+            'gst_no' => 'GST Number',
+            'username' => 'Username',
+        ];
+        $label = $labels[$field] ?? $field;
+        $desc = !empty($row['name']) ? "{$row['franchisee_code']} ({$row['name']})" : $row['franchisee_code'];
+        echo json_encode([
+            'ok' => true,
+            'is_duplicate' => true,
+            'message' => "{$label} is already registered with Franchise {$desc}.",
+        ]);
+    } else {
+        echo json_encode(['ok' => true, 'is_duplicate' => false]);
+    }
+    exit;
+}
+
 $types = franchise_types($pdo, true);
 $errors = [];
 $editId = (int) ($_GET['edit'] ?? 0);
@@ -97,6 +155,71 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     if ($code === '') {
         $code = franchise_next_code($pdo);
+    }
+
+    // --- DB Duplicate Validation: Email, Mobile, Aadhaar, PAN, GST, Username ---
+    if ($phone !== '') {
+        $chk = $pdo->prepare('SELECT id, franchisee_code, name FROM franchisees WHERE phone = ?' . ($id > 0 ? ' AND id != ?' : '') . ' LIMIT 1');
+        $chk->execute($id > 0 ? [$phone, $id] : [$phone]);
+        if ($dup = $chk->fetch(PDO::FETCH_ASSOC)) {
+            $desc = !empty($dup['name']) ? "{$dup['franchisee_code']} ({$dup['name']})" : $dup['franchisee_code'];
+            $errors[] = "Mobile number '{$phone}' is already registered with Franchise {$desc}.";
+        }
+    }
+
+    if ($email !== '') {
+        $chk = $pdo->prepare('SELECT id, franchisee_code, name FROM franchisees WHERE email = ?' . ($id > 0 ? ' AND id != ?' : '') . ' LIMIT 1');
+        $chk->execute($id > 0 ? [$email, $id] : [$email]);
+        if ($dup = $chk->fetch(PDO::FETCH_ASSOC)) {
+            $desc = !empty($dup['name']) ? "{$dup['franchisee_code']} ({$dup['name']})" : $dup['franchisee_code'];
+            $errors[] = "Email address '{$email}' is already registered with Franchise {$desc}.";
+        }
+    }
+
+    if ($aadhaarNo !== '') {
+        $cleanAadhaar = str_replace(' ', '', $aadhaarNo);
+        $chk = $pdo->prepare("SELECT id, franchisee_code, name FROM franchisees WHERE REPLACE(aadhaar_no, ' ', '') = ?" . ($id > 0 ? ' AND id != ?' : '') . ' LIMIT 1');
+        $chk->execute($id > 0 ? [$cleanAadhaar, $id] : [$cleanAadhaar]);
+        if ($dup = $chk->fetch(PDO::FETCH_ASSOC)) {
+            $desc = !empty($dup['name']) ? "{$dup['franchisee_code']} ({$dup['name']})" : $dup['franchisee_code'];
+            $errors[] = "Aadhaar Number '{$aadhaarNo}' is already registered with Franchise {$desc}.";
+        }
+    }
+
+    if ($panNo !== '') {
+        $cleanPan = strtoupper(trim($panNo));
+        $chk = $pdo->prepare('SELECT id, franchisee_code, name FROM franchisees WHERE UPPER(TRIM(pan_no)) = ?' . ($id > 0 ? ' AND id != ?' : '') . ' LIMIT 1');
+        $chk->execute($id > 0 ? [$cleanPan, $id] : [$cleanPan]);
+        if ($dup = $chk->fetch(PDO::FETCH_ASSOC)) {
+            $desc = !empty($dup['name']) ? "{$dup['franchisee_code']} ({$dup['name']})" : $dup['franchisee_code'];
+            $errors[] = "PAN Number '{$panNo}' is already registered with Franchise {$desc}.";
+        }
+    }
+
+    if ($gstNo !== '') {
+        $cleanGst = strtoupper(trim($gstNo));
+        $chk = $pdo->prepare('SELECT id, franchisee_code, name FROM franchisees WHERE UPPER(TRIM(gst_no)) = ?' . ($id > 0 ? ' AND id != ?' : '') . ' LIMIT 1');
+        $chk->execute($id > 0 ? [$cleanGst, $id] : [$cleanGst]);
+        if ($dup = $chk->fetch(PDO::FETCH_ASSOC)) {
+            $desc = !empty($dup['name']) ? "{$dup['franchisee_code']} ({$dup['name']})" : $dup['franchisee_code'];
+            $errors[] = "GST Number '{$gstNo}' is already registered with Franchise {$desc}.";
+        }
+    }
+
+    if ($username !== '') {
+        $chk = $pdo->prepare('SELECT id, franchisee_code, name FROM franchisees WHERE username = ?' . ($id > 0 ? ' AND id != ?' : '') . ' LIMIT 1');
+        $chk->execute($id > 0 ? [$username, $id] : [$username]);
+        if ($dup = $chk->fetch(PDO::FETCH_ASSOC)) {
+            $errors[] = "Username '{$username}' already exists. Please choose a different username.";
+        }
+    }
+
+    if ($code !== '') {
+        $chk = $pdo->prepare('SELECT id, name FROM franchisees WHERE franchisee_code = ?' . ($id > 0 ? ' AND id != ?' : '') . ' LIMIT 1');
+        $chk->execute($id > 0 ? [$code, $id] : [$code]);
+        if ($dup = $chk->fetch(PDO::FETCH_ASSOC)) {
+            $errors[] = "Franchise Code '{$code}' already exists.";
+        }
     }
 
     // Existing files when editing
@@ -254,7 +377,20 @@ franchise_header();
         <?php if (!$types): ?>
             <div class="alert alert-info">Create a <a href="franchisee-types.php">Franchisee Type</a> first.</div>
         <?php endif; ?>
-        <?php if ($errors): ?><div class="alert alert-error"><?= e(implode(' ', $errors)) ?></div><?php endif; ?>
+        <?php if ($errors): ?>
+            <div class="alert alert-error">
+                <?php if (count($errors) === 1): ?>
+                    <?= e($errors[0]) ?>
+                <?php else: ?>
+                    <strong style="display:block;margin-bottom:0.35rem">Please resolve the following errors:</strong>
+                    <ul style="margin:0;padding-left:1.25rem;line-height:1.5">
+                        <?php foreach ($errors as $err): ?>
+                            <li><?= e($err) ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
 
         <div class="fr-wiz-note">Complete all steps to register a new franchisee. Required fields are validated at each step.</div>
 
@@ -579,9 +715,30 @@ franchise_header();
             var phone = document.getElementById('frPhone');
             if (!name.value.trim()) { alert('Full name is required.'); name.focus(); return false; }
             if (!phone.value.trim()) { alert('Mobile number is required.'); phone.focus(); return false; }
+            if (phone.dataset.isDuplicate === '1') {
+                alert(phone.dataset.dupMsg || 'Mobile number already exists.'); phone.focus(); return false;
+            }
             var email = document.getElementById('frEmail');
             if (email.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
                 alert('Enter a valid email.'); email.focus(); return false;
+            }
+            if (email && email.dataset.isDuplicate === '1') {
+                alert(email.dataset.dupMsg || 'Email already exists.'); email.focus(); return false;
+            }
+            return true;
+        }
+        if (n === 3) {
+            var aadhaar = document.querySelector('input[name="aadhaar_no"]');
+            if (aadhaar && aadhaar.dataset.isDuplicate === '1') {
+                alert(aadhaar.dataset.dupMsg || 'Aadhaar number already exists.'); aadhaar.focus(); return false;
+            }
+            var pan = document.querySelector('input[name="pan_no"]');
+            if (pan && pan.dataset.isDuplicate === '1') {
+                alert(pan.dataset.dupMsg || 'PAN number already exists.'); pan.focus(); return false;
+            }
+            var gst = document.querySelector('input[name="gst_no"]');
+            if (gst && gst.dataset.isDuplicate === '1') {
+                alert(gst.dataset.dupMsg || 'GST number already exists.'); gst.focus(); return false;
             }
             return true;
         }
@@ -600,6 +757,9 @@ franchise_header();
             var pass2 = document.getElementById('frPassword2');
             var isEdit = <?= $isEdit ? 'true' : 'false' ?>;
             if (!user.value.trim()) { alert('Username is required.'); user.focus(); return false; }
+            if (user.dataset.isDuplicate === '1') {
+                alert(user.dataset.dupMsg || 'Username already exists.'); user.focus(); return false;
+            }
             if (!isEdit && !pass.value) { alert('Password is required.'); pass.focus(); return false; }
             if (pass.value && pass.value.length < 6) { alert('Password must be at least 6 characters.'); pass.focus(); return false; }
             if (pass.value && pass.value !== pass2.value) { alert('Passwords do not match.'); pass2.focus(); return false; }
@@ -628,8 +788,72 @@ franchise_header();
     });
 
     document.getElementById('frWizForm').addEventListener('submit', function (e) {
-        if (!validateStep(5)) e.preventDefault();
+        for (var i = 1; i <= 5; i++) {
+            if (!validateStep(i)) {
+                e.preventDefault();
+                showStep(i);
+                return;
+            }
+        }
     });
+
+    // Real-time Duplicate Check Setup
+    var currentEditId = <?= (int) ($edit['id'] ?? 0) ?>;
+
+    function setupDuplicateCheck(inputEl, fieldName) {
+        if (!inputEl) return;
+        var debounceTimer = null;
+        var msgEl = document.createElement('div');
+        msgEl.className = 'fr-field-dup-warn';
+        msgEl.style.cssText = 'color:#e11d48;font-size:0.8rem;margin-top:0.35rem;display:none;font-weight:600;line-height:1.3;';
+        inputEl.parentNode.appendChild(msgEl);
+
+        function runCheck() {
+            var val = (inputEl.value || '').trim();
+            if (!val) {
+                msgEl.style.display = 'none';
+                msgEl.textContent = '';
+                inputEl.style.borderColor = '';
+                delete inputEl.dataset.isDuplicate;
+                delete inputEl.dataset.dupMsg;
+                return;
+            }
+            var url = 'franchisee-add.php?ajax=check_duplicate&field=' + encodeURIComponent(fieldName) +
+                      '&value=' + encodeURIComponent(val) +
+                      '&exclude_id=' + currentEditId;
+            fetch(url, { credentials: 'same-origin' })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (data && data.is_duplicate) {
+                        msgEl.textContent = '⚠️ ' + data.message;
+                        msgEl.style.display = 'block';
+                        inputEl.style.borderColor = '#e11d48';
+                        inputEl.dataset.isDuplicate = '1';
+                        inputEl.dataset.dupMsg = data.message;
+                    } else {
+                        msgEl.style.display = 'none';
+                        msgEl.textContent = '';
+                        inputEl.style.borderColor = '';
+                        delete inputEl.dataset.isDuplicate;
+                        delete inputEl.dataset.dupMsg;
+                    }
+                })
+                .catch(function () {});
+        }
+
+        inputEl.addEventListener('input', function () {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(runCheck, 400);
+        });
+        inputEl.addEventListener('blur', runCheck);
+    }
+
+    setupDuplicateCheck(document.getElementById('frPhone'), 'phone');
+    setupDuplicateCheck(document.getElementById('frEmail'), 'email');
+    setupDuplicateCheck(document.querySelector('input[name="aadhaar_no"]'), 'aadhaar_no');
+    setupDuplicateCheck(document.querySelector('input[name="pan_no"]'), 'pan_no');
+    setupDuplicateCheck(document.querySelector('input[name="gst_no"]'), 'gst_no');
+    setupDuplicateCheck(document.getElementById('frUsername'), 'username');
 
     function lookupSponsor() {
         var code = (document.getElementById('frSponsorCode').value || '').trim();

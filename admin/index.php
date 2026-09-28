@@ -1,124 +1,101 @@
 <?php
 require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../includes/closing.php';
+require_once __DIR__ . '/../includes/franchise.php';
 $pageTitle = 'Dashboard';
-require_once __DIR__ . '/../includes/header.php';
 
-$totalMembers = (int) $pdo->query("SELECT COUNT(*) FROM members")->fetchColumn();
-$activeMembers = (int) $pdo->query("SELECT COUNT(*) FROM members WHERE status = 'active'")->fetchColumn();
-$totalPackages = (int) $pdo->query("SELECT COUNT(*) FROM packages WHERE status = 'active'")->fetchColumn();
-$pendingWithdrawals = (int) $pdo->query("SELECT COUNT(*) FROM withdrawals WHERE status = 'pending'")->fetchColumn();
-$totalCommissions = (float) $pdo->query("SELECT COALESCE(SUM(amount),0) FROM commissions WHERE status != 'cancelled'")->fetchColumn();
-$totalPaidOut = (float) $pdo->query("SELECT COALESCE(SUM(amount),0) FROM withdrawals WHERE status IN ('approved','paid')")->fetchColumn();
-$todayJoins = (int) $pdo->query("SELECT COUNT(*) FROM members WHERE DATE(join_date) = CURDATE()")->fetchColumn();
-$walletTotal = (float) $pdo->query("SELECT COALESCE(SUM(wallet_balance),0) FROM members")->fetchColumn();
-$newsCount = (int) $pdo->query("SELECT COUNT(*) FROM news WHERE status = 'active'")->fetchColumn();
-$pendingComm = (int) $pdo->query("SELECT COUNT(*) FROM commissions WHERE status = 'pending'")->fetchColumn();
+franchise_ensure_tables($pdo);
 
-$closingSummary = ['eligible_members' => 0, 'pairs' => 0, 'matched_bv' => 0, 'est_binary_gross' => 0];
-$lastClosing = null;
-$showBinaryDash = plan_uses_binary();
-$showPackagesDash = feature_module_allowed('packages');
-$showWithdrawalsDash = feature_module_allowed('withdrawals');
-$showKycDash = feature_module_allowed('kyc');
-$showProductsDash = feature_module_allowed('products');
-$showActivationsDash = feature_module_allowed('activations') || feature_enabled('feature_utr_activation_enabled');
-
-$alertPendingKyc = 0;
-$alertPendingUtr = 0;
-$alertPendingWd = $showWithdrawalsDash ? $pendingWithdrawals : 0;
+// Franchise Stats
+$totalFranchisees = 0;
+$activeFranchisees = 0;
+$totalFranchiseSales = 0.0;
+$todayFranchiseSales = 0.0;
+$totalFranchiseWallet = 0.0;
+$totalFranchiseStock = 0;
+$totalProducts = 0;
+$totalWarehouseStock = 0;
 $alertLowStock = 0;
 $stockThreshold = 5;
 
-if ($showKycDash) {
-    try {
-        $alertPendingKyc = (int) $pdo->query("SELECT COUNT(*) FROM member_kyc_documents WHERE status = 'pending'")->fetchColumn();
-    } catch (Throwable $e) {
-        $alertPendingKyc = 0;
-    }
-}
-if ($showActivationsDash) {
-    try {
-        $alertPendingUtr = (int) $pdo->query("SELECT COUNT(*) FROM activation_requests WHERE status = 'pending'")->fetchColumn();
-    } catch (Throwable $e) {
-        $alertPendingUtr = 0;
-    }
-}
-if ($showProductsDash) {
-    try {
-        $alertLowStock = (int) $pdo->query("SELECT COUNT(*) FROM products WHERE status = 'active' AND stock_qty <= {$stockThreshold}")->fetchColumn();
-    } catch (Throwable $e) {
-        $alertLowStock = 0;
-    }
-}
+try {
+    $totalFranchisees = (int) $pdo->query("SELECT COUNT(*) FROM franchisees")->fetchColumn();
+    $activeFranchisees = (int) $pdo->query("SELECT COUNT(*) FROM franchisees WHERE status = 'active'")->fetchColumn();
+    $totalFranchiseWallet = (float) $pdo->query("SELECT COALESCE(SUM(wallet_balance), 0) FROM franchisees")->fetchColumn();
+    $totalFranchiseSales = (float) $pdo->query("SELECT COALESCE(SUM(total_amount), 0) FROM franchisee_purchases WHERE status != 'cancelled'")->fetchColumn();
+    $todayFranchiseSales = (float) $pdo->query("SELECT COALESCE(SUM(total_amount), 0) FROM franchisee_purchases WHERE purchase_date = CURDATE() AND status != 'cancelled'")->fetchColumn();
+} catch (Throwable $e) {}
 
+try {
+    $totalProducts = (int) $pdo->query("SELECT COUNT(*) FROM products WHERE status = 'active'")->fetchColumn();
+    $totalWarehouseStock = (int) $pdo->query("SELECT COALESCE(SUM(stock_qty), 0) FROM products WHERE status = 'active'")->fetchColumn();
+    $alertLowStock = (int) $pdo->query("SELECT COUNT(*) FROM products WHERE status = 'active' AND stock_qty <= {$stockThreshold}")->fetchColumn();
+    $totalFranchiseStock = (int) $pdo->query("SELECT COALESCE(SUM(qty), 0) FROM franchisee_stock")->fetchColumn();
+} catch (Throwable $e) {}
+
+// Tier-wise breakdown (BHEO, Super Distributor, Distributor, Retailer)
+$tierStats = [];
+try {
+    $tierStats = $pdo->query("
+        SELECT t.id, t.name, t.code, t.commission_percent, COUNT(f.id) AS total_count
+        FROM franchisee_types t
+        LEFT JOIN franchisees f ON f.type_id = t.id
+        WHERE t.status = 'active'
+        GROUP BY t.id, t.name, t.code, t.commission_percent
+        ORDER BY t.hierarchy_level ASC, t.id ASC
+    ")->fetchAll(PDO::FETCH_ASSOC);
+} catch (Throwable $e) {}
+
+// Recent Franchise Invoices / Purchases
+$recentPurchases = [];
+try {
+    $recentPurchases = $pdo->query("
+        SELECT p.*, f.name AS franchisee_name, f.franchisee_code, t.name AS type_name
+        FROM franchisee_purchases p
+        JOIN franchisees f ON f.id = p.franchisee_id
+        LEFT JOIN franchisee_types t ON t.id = f.type_id
+        ORDER BY p.purchase_date DESC, p.id DESC
+        LIMIT 8
+    ")->fetchAll(PDO::FETCH_ASSOC);
+} catch (Throwable $e) {}
+
+// Recent Franchisees
+$recentFranchisees = [];
+try {
+    $recentFranchisees = $pdo->query("
+        SELECT f.*, t.name AS type_name, t.code AS type_code
+        FROM franchisees f
+        LEFT JOIN franchisee_types t ON t.id = f.type_id
+        ORDER BY f.id DESC
+        LIMIT 8
+    ")->fetchAll(PDO::FETCH_ASSOC);
+} catch (Throwable $e) {}
+
+// Alerts
 $dashAlerts = [];
-if ($alertPendingKyc > 0) {
-    $dashAlerts[] = [
-        'tone' => 'warn',
-        'label' => 'Pending KYC',
-        'count' => $alertPendingKyc,
-        'href' => 'approve-kyc.php?status=pending',
-        'hint' => 'Documents waiting for review',
-    ];
-}
-if ($alertPendingUtr > 0) {
-    $dashAlerts[] = [
-        'tone' => 'info',
-        'label' => 'Pending activations',
-        'count' => $alertPendingUtr,
-        'href' => 'activations.php?status=pending',
-        'hint' => 'UTR / package requests',
-    ];
-}
-if ($alertPendingWd > 0) {
-    $dashAlerts[] = [
-        'tone' => 'danger',
-        'label' => 'Open withdrawals',
-        'count' => $alertPendingWd,
-        'href' => 'withdrawals.php?status=pending',
-        'hint' => 'Awaiting approve / pay',
-    ];
-}
 if ($alertLowStock > 0) {
     $dashAlerts[] = [
         'tone' => 'stock',
-        'label' => 'Low stock',
+        'label' => 'Low Stock Warning',
         'count' => $alertLowStock,
-        'href' => 'product-status.php',
-        'hint' => 'Qty ≤ ' . $stockThreshold,
+        'href' => 'stock-report.php',
+        'hint' => 'Products with stock ≤ ' . $stockThreshold,
     ];
 }
 
-if ($showBinaryDash) {
-    try {
-        closing_ensure_tables($pdo);
-        $closingSummary = closing_open_pair_summary($pdo);
-    } catch (Throwable $e) {
-        // ignore
-    }
-    try {
-        $lastClosing = $pdo->query('SELECT * FROM closing_runs ORDER BY id DESC LIMIT 1')->fetch() ?: null;
-    } catch (Throwable $e) {
-        $lastClosing = null;
-    }
+$pendingPurchasesCount = 0;
+try {
+    $pendingPurchasesCount = (int) $pdo->query("SELECT COUNT(*) FROM franchisee_purchases WHERE status = 'pending'")->fetchColumn();
+} catch (Throwable $e) {}
+
+if ($pendingPurchasesCount > 0) {
+    $dashAlerts[] = [
+        'tone' => 'warn',
+        'label' => 'Pending Invoices',
+        'count' => $pendingPurchasesCount,
+        'href' => 'franchisee-purchase-report.php',
+        'hint' => 'Orders awaiting completion',
+    ];
 }
-
-$recentMembers = $pdo->query("
-    SELECT m.*, p.name AS package_name
-    FROM members m
-    LEFT JOIN packages p ON p.id = m.package_id
-    ORDER BY m.join_date DESC
-    LIMIT 8
-")->fetchAll();
-
-$recentCommissions = $pdo->query("
-    SELECT c.*, m.full_name, m.member_id AS mid
-    FROM commissions c
-    JOIN members m ON m.id = c.member_id
-    ORDER BY c.created_at DESC
-    LIMIT 8
-")->fetchAll();
 
 $iconUsers = '<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>';
 $iconCheck = '<svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
@@ -126,7 +103,10 @@ $iconCalendar = '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="1
 $iconMoney = '<svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>';
 $iconWallet = '<svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>';
 $iconPackage = '<svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>';
-$iconOut = '<svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 014-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>';
+$iconStore = '<svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
+$iconBox = '<svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>';
+
+require_once __DIR__ . '/../includes/header.php';
 ?>
 
 <?php if ($dashAlerts): ?>
@@ -150,225 +130,195 @@ $iconOut = '<svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d=
 </div>
 <?php endif; ?>
 
+<!-- Quick Action Shortcuts -->
+<div style="display:flex;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.25rem;align-items:center;">
+    <a href="franchisee-add.php" class="btn btn-primary btn-sm" style="display:inline-flex;align-items:center;gap:0.35rem">
+        <span>+ Add Franchisee</span>
+    </a>
+    <a href="franchisee-purchase.php" class="btn btn-accent btn-sm" style="display:inline-flex;align-items:center;gap:0.35rem">
+        <span>+ New Stock Billing</span>
+    </a>
+    <a href="franchisee-stock.php" class="btn btn-outline btn-sm">Franchise Stock</a>
+    <a href="stock-report.php" class="btn btn-outline btn-sm">Warehouse Stock</a>
+    <a href="wallets.php" class="btn btn-outline btn-sm">Franchise Wallets</a>
+    <a href="direct-franchise-login.php" class="btn btn-outline btn-sm">Direct Franchise Login →</a>
+</div>
+
+<!-- Primary Stats Grid -->
 <div class="stats-grid">
     <div class="stat-card g-blue">
         <div class="bg-icon"><?= $iconUsers ?></div>
-        <div class="value"><?= $totalMembers ?></div>
-        <div class="label">Total Members</div>
-        <a class="more" href="members.php">More info →</a>
+        <div class="value"><?= $totalFranchisees ?></div>
+        <div class="label">Total Franchisees</div>
+        <a class="more" href="franchisee-report.php">View all →</a>
     </div>
     <div class="stat-card g-cyan">
         <div class="bg-icon"><?= $iconCheck ?></div>
-        <div class="value"><?= $activeMembers ?></div>
-        <div class="label">Active Members</div>
-        <a class="more" href="members.php?status=active">More info →</a>
+        <div class="value"><?= $activeFranchisees ?></div>
+        <div class="label">Active Centers</div>
+        <a class="more" href="franchisee-report.php?status=active">Active list →</a>
     </div>
     <div class="stat-card g-green">
-        <div class="bg-icon"><?= $iconCalendar ?></div>
-        <div class="value"><?= $todayJoins ?></div>
-        <div class="label">Joined Today</div>
-        <a class="more" href="members.php">More info →</a>
+        <div class="bg-icon"><?= $iconMoney ?></div>
+        <div class="value"><?= currency($totalFranchiseSales) ?></div>
+        <div class="label">Total Franchise Billing</div>
+        <a class="more" href="franchisee-purchase-report.php">Billing report →</a>
     </div>
     <div class="stat-card g-mint">
-        <div class="bg-icon"><?= $iconMoney ?></div>
-        <div class="value"><?= currency($totalCommissions) ?></div>
-        <div class="label">Total Commissions</div>
-        <a class="more" href="commissions.php">More info →</a>
+        <div class="bg-icon"><?= $iconCalendar ?></div>
+        <div class="value"><?= currency($todayFranchiseSales) ?></div>
+        <div class="label">Today's Billing</div>
+        <a class="more" href="franchisee-purchase-report.php">Invoices →</a>
     </div>
-    <?php if ($showWithdrawalsDash): ?>
-    <div class="stat-card g-red">
-        <div class="bg-icon"><?= $iconWallet ?></div>
-        <div class="value"><?= $pendingWithdrawals ?></div>
-        <div class="label">Pending Withdrawals</div>
-        <a class="more" href="withdrawals.php?status=pending">More info →</a>
-    </div>
-    <div class="stat-card g-orange">
-        <div class="bg-icon"><?= $iconOut ?></div>
-        <div class="value"><?= currency($totalPaidOut) ?></div>
-        <div class="label">Paid Out</div>
-        <a class="more" href="withdrawals.php">More info →</a>
-    </div>
-    <?php endif; ?>
-    <div class="stat-card g-pink">
-        <div class="bg-icon"><?= $iconWallet ?></div>
-        <div class="value"><?= currency($walletTotal) ?></div>
-        <div class="label">Wallet Balance</div>
-        <a class="more" href="members.php">More info →</a>
-    </div>
-    <?php if ($showPackagesDash): ?>
     <div class="stat-card g-purple">
         <div class="bg-icon"><?= $iconPackage ?></div>
-        <div class="value"><?= $totalPackages ?></div>
-        <div class="label">Active Packages</div>
-        <a class="more" href="packages.php">More info →</a>
+        <div class="value"><?= $totalProducts ?></div>
+        <div class="label">Active Products</div>
+        <a class="more" href="product-details.php">Catalog →</a>
     </div>
-    <?php endif; ?>
-    <?php if ($showBinaryDash): ?>
-    <div class="stat-card g-cyan">
-        <div class="bg-icon"><?= $iconCheck ?></div>
-        <div class="value"><?= number_format((float) $closingSummary['pairs'], 1) ?></div>
-        <div class="label">Open Binary Pairs</div>
-        <a class="more" href="binary-closing.php">Close now →</a>
+    <div class="stat-card g-orange">
+        <div class="bg-icon"><?= $iconBox ?></div>
+        <div class="value"><?= number_format($totalWarehouseStock) ?></div>
+        <div class="label">Warehouse Inventory</div>
+        <a class="more" href="stock-report.php">Stock details →</a>
     </div>
-    <div class="stat-card g-mint">
-        <div class="bg-icon"><?= $iconMoney ?></div>
-        <div class="value"><?= currency((float) $closingSummary['est_binary_gross']) ?></div>
-        <div class="label">Est. Binary Gross</div>
-        <a class="more" href="binary-closing.php">Preview →</a>
+    <div class="stat-card g-red">
+        <div class="bg-icon"><?= $iconStore ?></div>
+        <div class="value"><?= number_format($totalFranchiseStock) ?></div>
+        <div class="label">Franchise Stock Held</div>
+        <a class="more" href="franchisee-stock.php">Inspect stock →</a>
     </div>
-    <?php endif; ?>
+    <div class="stat-card g-pink">
+        <div class="bg-icon"><?= $iconWallet ?></div>
+        <div class="value"><?= currency($totalFranchiseWallet) ?></div>
+        <div class="label">Franchise Wallets</div>
+        <a class="more" href="wallets.php">Manage wallets →</a>
+    </div>
 </div>
 
-<?php if ($showBinaryDash && $lastClosing): ?>
-<div class="panel" style="margin-bottom:1.25rem">
-    <div class="panel-body" style="display:flex;flex-wrap:wrap;gap:1rem;align-items:center;justify-content:space-between">
+<!-- Franchise Hierarchy / Tier Distribution -->
+<?php if ($tierStats): ?>
+<div class="panel" style="margin-bottom:1.5rem">
+    <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-            <strong>Last closing #<?= (int) $lastClosing['id'] ?></strong>
-            <span class="muted"> · <?= e(date('d M Y H:i', strtotime((string) $lastClosing['created_at']))) ?></span>
-            <div class="muted" style="margin-top:0.35rem;font-size:0.85rem">
-                Paid <?= (int) $lastClosing['members_paid'] ?> · Binary net <?= currency((float) $lastClosing['binary_net_total']) ?> · Matching <?= currency((float) $lastClosing['matching_total']) ?>
-            </div>
+            <h2>Franchise Tier Hierarchy</h2>
+            <p class="members-sub" style="margin:0.2rem 0 0;color:var(--ink-muted);font-size:0.85rem">Distribution centers categorized by tier &amp; margin structure</p>
         </div>
-        <a class="btn btn-outline btn-sm" href="binary-closing.php?run=<?= (int) $lastClosing['id'] ?>">View closing</a>
+        <a href="franchisee-types.php" class="btn btn-outline btn-sm">Configure Tiers</a>
+    </div>
+    <div class="panel-body">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:1rem;">
+            <?php 
+            $tierTones = ['theme-blue', 'theme-green', 'theme-orange', 'theme-red'];
+            $idx = 0;
+            foreach ($tierStats as $t): 
+                $theme = $tierTones[$idx % count($tierTones)];
+                $idx++;
+            ?>
+            <div class="summary-card <?= $theme ?>" style="margin-bottom:0">
+                <div class="top">
+                    <span class="summary-icon <?= str_replace('theme-', '', $theme) ?>"><?= $iconStore ?></span>
+                    <span class="chip <?= str_replace('theme-', '', $theme) ?>"><?= (float) $t['commission_percent'] ?>% Margin</span>
+                </div>
+                <h3><?= e($t['name']) ?></h3>
+                <div class="summary-stats">
+                    <div><span>Count</span><strong><?= (int) $t['total_count'] ?></strong></div>
+                    <div><span>Code</span><strong><?= e($t['code'] ?: '—') ?></strong></div>
+                </div>
+                <div class="summary-foot">
+                    <a href="franchisee-report.php?type=<?= (int) $t['id'] ?>">View <?= e($t['name']) ?>s →</a>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
     </div>
 </div>
 <?php endif; ?>
 
-<div class="dash-bottom">
-    <div class="summary-stack">
-        <div class="summary-card theme-blue">
-            <div class="top">
-                <span class="summary-icon blue"><?= $iconMoney ?></span>
-                <span class="chip blue">Fund In</span>
-            </div>
-            <h3>Commission Pending</h3>
-            <div class="summary-stats">
-                <div><span>Total</span><strong><?= $pendingComm ?></strong></div>
-                <div><span>Pending</span><strong><?= $pendingComm ?></strong></div>
-            </div>
-            <div class="summary-foot">
-                <span class="hint">Awaiting approval</span>
-                <a href="commissions.php?status=pending">View all →</a>
-            </div>
-        </div>
-
-        <div class="summary-card theme-red">
-            <div class="top">
-                <span class="summary-icon red"><?= $iconWallet ?></span>
-                <span class="chip red">Payout</span>
-            </div>
-            <h3>Withdrawal Request</h3>
-            <div class="summary-stats">
-                <div><span>Total</span><strong><?= $pendingWithdrawals ?></strong></div>
-                <div><span>Pending</span><strong><?= $pendingWithdrawals ?></strong></div>
-            </div>
-            <div class="summary-foot">
-                <span class="hint">Needs action</span>
-                <a href="withdrawals.php?status=pending">View all →</a>
-            </div>
-        </div>
-
-        <div class="summary-card theme-green">
-            <div class="top">
-                <span class="summary-icon green"><?= $iconCheck ?></span>
-                <span class="chip green">Updates</span>
-            </div>
-            <h3>News</h3>
-            <div class="summary-stats">
-                <div><span>Total</span><strong><?= $newsCount ?></strong></div>
-                <div><span>Active</span><strong><?= $newsCount ?></strong></div>
-            </div>
-            <div class="summary-foot">
-                <span class="hint">Published items</span>
-                <a href="news.php">Manage →</a>
-            </div>
-        </div>
-
-        <div class="summary-card theme-orange">
-            <div class="top">
-                <span class="summary-icon orange"><?= $iconPackage ?></span>
-                <span class="chip orange">Packages</span>
-            </div>
-            <h3>Active Packages</h3>
-            <div class="summary-stats">
-                <div><span>Total</span><strong><?= $totalPackages ?></strong></div>
-                <div><span>Active</span><strong><?= $totalPackages ?></strong></div>
-            </div>
-            <div class="summary-foot">
-                <span class="hint">Plan catalogue</span>
-                <a href="packages.php">Manage →</a>
-            </div>
-        </div>
-    </div>
-
-    <div class="panel" style="margin:0">
-        <div class="panel-header">
+<!-- Recent Activity Tables: Purchases and Franchisees -->
+<div class="dash-bottom" style="display:grid;grid-template-columns:1.2fr 0.8fr;gap:1.5rem;">
+    <!-- Recent Franchise Purchases / Invoices -->
+    <div class="panel" style="margin-bottom:0">
+        <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">
             <div>
-                <h2>Recent Members</h2>
+                <h2>Recent Stock Invoices</h2>
+                <p class="members-sub" style="margin:0.2rem 0 0;color:var(--ink-muted);font-size:0.85rem">Latest stock purchases billed to franchisees</p>
             </div>
-            <a href="members.php" class="btn btn-outline btn-sm">View all</a>
+            <a href="franchisee-purchase-report.php" class="btn btn-outline btn-sm">All Invoices</a>
         </div>
         <div class="table-wrap">
             <table class="data">
                 <thead>
                     <tr>
-                        <th>Member ID</th>
-                        <th>Name</th>
-                        <th>Package</th>
+                        <th>Invoice</th>
+                        <th>Franchisee</th>
+                        <th>Amount</th>
+                        <th>Date</th>
                         <th>Status</th>
-                        <th>Joined</th>
                     </tr>
                 </thead>
                 <tbody>
-                <?php if (!$recentMembers): ?>
-                    <tr><td colspan="5">No members yet.</td></tr>
-                <?php else: foreach ($recentMembers as $m): ?>
+                <?php if (!$recentPurchases): ?>
+                    <tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--ink-muted)">No stock purchases yet. <a href="franchisee-purchase.php">Create first billing</a></td></tr>
+                <?php else: foreach ($recentPurchases as $p): ?>
                     <tr>
-                        <td><a href="member-view.php?id=<?= (int) $m['id'] ?>"><?= e($m['member_id']) ?></a></td>
-                        <td><?= e($m['full_name']) ?></td>
-                        <td><?= e($m['package_name'] ?? '—') ?></td>
-                        <td><?= status_badge((string) $m['status']) ?></td>
-                        <td><?= date('d M Y', strtotime($m['join_date'])) ?></td>
+                        <td>
+                            <strong><a href="franchisee-purchase-report.php?q=<?= urlencode((string) $p['invoice_no']) ?>"><?= e($p['invoice_no'] ?: '#' . $p['id']) ?></a></strong>
+                        </td>
+                        <td>
+                            <div style="line-height:1.2">
+                                <strong><?= e($p['franchisee_name']) ?></strong>
+                                <small style="display:block;color:var(--ink-muted)"><?= e($p['franchisee_code']) ?> · <?= e($p['type_name'] ?? 'Franchise') ?></small>
+                            </div>
+                        </td>
+                        <td><strong><?= currency((float) $p['total_amount']) ?></strong></td>
+                        <td><small><?= e(date('d M Y', strtotime((string) $p['purchase_date']))) ?></small></td>
+                        <td><?= status_badge($p['status']) ?></td>
                     </tr>
                 <?php endforeach; endif; ?>
                 </tbody>
             </table>
         </div>
     </div>
-</div>
 
-<div class="panel">
-    <div class="panel-header">
-        <div>
-            <h2>Recent Commissions</h2>
+    <!-- Newly Added Franchisees -->
+    <div class="panel" style="margin-bottom:0">
+        <div class="panel-header" style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+                <h2>New Franchisees</h2>
+                <p class="members-sub" style="margin:0.2rem 0 0;color:var(--ink-muted);font-size:0.85rem">Recently registered centers</p>
+            </div>
+            <a href="franchisee-report.php" class="btn btn-outline btn-sm">View All</a>
         </div>
-        <a href="commissions.php" class="btn btn-outline btn-sm">View all</a>
-    </div>
-    <div class="table-wrap">
-        <table class="data">
-            <thead>
-                <tr>
-                    <th>Member</th>
-                    <th>Type</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                </tr>
-            </thead>
-            <tbody>
-            <?php if (!$recentCommissions): ?>
-                <tr><td colspan="5">No commissions yet.</td></tr>
-            <?php else: foreach ($recentCommissions as $c): ?>
-                <tr>
-                    <td><?= e($c['full_name']) ?> <small>(<?= e($c['mid']) ?>)</small></td>
-                    <td><?= e(ucfirst($c['type'])) ?></td>
-                    <td><?= currency((float) $c['amount']) ?></td>
-                    <td><?= status_badge((string) $c['status']) ?></td>
-                    <td><?= date('d M Y H:i', strtotime($c['created_at'])) ?></td>
-                </tr>
-            <?php endforeach; endif; ?>
-            </tbody>
-        </table>
+        <div class="table-wrap">
+            <table class="data">
+                <thead>
+                    <tr>
+                        <th>Center</th>
+                        <th>Type</th>
+                        <th>Wallet</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <?php if (!$recentFranchisees): ?>
+                    <tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--ink-muted)">No franchisees yet. <a href="franchisee-add.php">Add franchisee</a></td></tr>
+                <?php else: foreach ($recentFranchisees as $f): ?>
+                    <tr>
+                        <td>
+                            <div style="line-height:1.2">
+                                <strong><?= e($f['name']) ?></strong>
+                                <small style="display:block;color:var(--ink-muted)"><?= e($f['franchisee_code']) ?> · <?= e($f['city'] ?? $f['phone']) ?></small>
+                            </div>
+                        </td>
+                        <td><span class="badge" style="background:#e0f2fe;color:#0284c7;font-weight:600;font-size:0.75rem"><?= e($f['type_name'] ?? 'Franchise') ?></span></td>
+                        <td><strong><?= currency((float) $f['wallet_balance']) ?></strong></td>
+                        <td><?= status_badge($f['status']) ?></td>
+                    </tr>
+                <?php endforeach; endif; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 

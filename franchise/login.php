@@ -69,17 +69,17 @@ $favUrl = company_favicon_url();
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #0284c7;
-            --primary-light: #38bdf8;
-            --primary-dark: #0369a1;
-            --accent: #10b981;
-            --dark-bg: #070e1e;
+            --primary: #059669;
+            --primary-light: #34d399;
+            --primary-dark: #047857;
+            --accent: #f59e0b;
+            --dark-bg: #041f17;
             --card-surface: #ffffff;
             --text-dark: #0f172a;
             --text-slate: #334155;
             --text-muted: #64748b;
             --border: #e2e8f0;
-            --ring: rgba(2, 132, 199, 0.25);
+            --ring: rgba(5, 150, 105, 0.22);
         }
 
         * {
@@ -96,9 +96,9 @@ $favUrl = company_favicon_url();
             justify-content: center;
             background-color: var(--dark-bg);
             background-image: 
-                radial-gradient(at 0% 0%, rgba(2, 132, 199, 0.28) 0px, transparent 50%),
-                radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.22) 0px, transparent 50%),
-                radial-gradient(at 50% 100%, rgba(99, 102, 241, 0.18) 0px, transparent 50%);
+                radial-gradient(at 0% 0%, rgba(5, 150, 105, 0.35) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(13, 148, 136, 0.28) 0px, transparent 50%),
+                radial-gradient(at 50% 100%, rgba(6, 78, 59, 0.42) 0px, transparent 50%);
             padding: 2rem 1.25rem;
             position: relative;
             overflow-x: hidden;
@@ -115,14 +115,14 @@ $favUrl = company_favicon_url();
         .glow-1 {
             width: 500px;
             height: 500px;
-            background: linear-gradient(135deg, rgba(2, 132, 199, 0.35), rgba(56, 189, 248, 0.2));
+            background: linear-gradient(135deg, rgba(5, 150, 105, 0.4), rgba(52, 211, 153, 0.25));
             top: -150px;
             left: -150px;
         }
         .glow-2 {
             width: 450px;
             height: 450px;
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(6, 182, 212, 0.2));
+            background: linear-gradient(135deg, rgba(13, 148, 136, 0.35), rgba(245, 158, 11, 0.18));
             bottom: -120px;
             right: -120px;
         }
@@ -146,7 +146,7 @@ $favUrl = company_favicon_url();
 
         /* Left Side: Brand Showcase */
         .fr-showcase-hero {
-            background: linear-gradient(145deg, #091a32 0%, #0d274c 50%, #0a1f3d 100%);
+            background: linear-gradient(145deg, #064e3b 0%, #065f46 50%, #022c22 100%);
             padding: 3.5rem 3rem;
             color: #ffffff;
             display: flex;
@@ -169,34 +169,45 @@ $favUrl = company_favicon_url();
             z-index: 2;
         }
         .hero-brand {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
             margin-bottom: 2rem;
         }
+        .hero-logo-box {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #ffffff;
+            padding: 0.65rem 1.25rem;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16), 0 0 0 1px rgba(255, 255, 255, 0.8);
+        }
         .hero-logo {
-            max-height: 44px;
-            max-width: 160px;
+            height: 44px;
+            width: auto;
+            max-width: 220px;
             object-fit: contain;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+            display: block;
         }
         .hero-brand-name {
             font-family: 'Outfit', sans-serif;
-            font-size: 1.35rem;
-            font-weight: 700;
+            font-size: 1.45rem;
+            font-weight: 800;
             letter-spacing: -0.01em;
             color: #ffffff;
+            background: rgba(255, 255, 255, 0.12);
+            padding: 0.5rem 1.2rem;
+            border-radius: 12px;
+            display: inline-block;
         }
         .hero-tag {
             display: inline-flex;
             align-items: center;
             gap: 0.45rem;
-            background: rgba(2, 132, 199, 0.2);
-            border: 1px solid rgba(56, 189, 248, 0.35);
-            color: #7dd3fc;
+            background: rgba(5, 150, 105, 0.28);
+            border: 1px solid rgba(52, 211, 153, 0.4);
+            color: #a7f3d0;
             font-size: 0.75rem;
             font-weight: 700;
-            padding: 0.35rem 0.8rem;
+            padding: 0.35rem 0.85rem;
             border-radius: 9999px;
             text-transform: uppercase;
             letter-spacing: 0.06em;
@@ -206,8 +217,8 @@ $favUrl = company_favicon_url();
             width: 7px;
             height: 7px;
             border-radius: 50%;
-            background: #38bdf8;
-            box-shadow: 0 0 8px #38bdf8;
+            background: #34d399;
+            box-shadow: 0 0 8px #34d399;
         }
         .hero-title {
             font-family: 'Outfit', sans-serif;
@@ -219,14 +230,14 @@ $favUrl = company_favicon_url();
             letter-spacing: -0.02em;
         }
         .hero-title span {
-            background: linear-gradient(135deg, #38bdf8 0%, #34d399 100%);
+            background: linear-gradient(135deg, #34d399 0%, #fbbf24 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         .hero-desc {
-            color: #94a3b8;
+            color: #cbd5e1;
             font-size: 0.95rem;
-            line-height: 1.55;
+            line-height: 1.6;
             margin-bottom: 2rem;
         }
 
@@ -244,20 +255,20 @@ $favUrl = company_favicon_url();
             align-items: center;
             gap: 0.9rem;
             font-size: 0.9rem;
-            color: #e2e8f0;
+            color: #f1f5f9;
             font-weight: 500;
         }
         .feat-icon {
             width: 36px;
             height: 36px;
             border-radius: 10px;
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            color: #38bdf8;
+            color: #34d399;
         }
         .feat-icon svg {
             width: 18px;
@@ -267,12 +278,12 @@ $favUrl = company_favicon_url();
         .hero-footer {
             margin-top: 2.5rem;
             padding-top: 1.5rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid rgba(255, 255, 255, 0.14);
             display: flex;
             align-items: center;
             justify-content: space-between;
             font-size: 0.82rem;
-            color: #64748b;
+            color: #94a3b8;
             position: relative;
             z-index: 2;
         }
@@ -292,6 +303,16 @@ $favUrl = company_favicon_url();
         }
         .form-header {
             margin-bottom: 2rem;
+        }
+        .form-mobile-logo {
+            display: none;
+            margin-bottom: 1.25rem;
+        }
+        .form-mobile-logo img {
+            height: 40px;
+            width: auto;
+            max-width: 200px;
+            object-fit: contain;
         }
         .form-header h2 {
             font-family: 'Outfit', sans-serif;
@@ -440,11 +461,11 @@ $favUrl = company_favicon_url();
             font-weight: 700;
             font-family: inherit;
             color: #ffffff;
-            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
             border: none;
             border-radius: 12px;
             cursor: pointer;
-            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+            box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35);
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
@@ -452,8 +473,8 @@ $favUrl = company_favicon_url();
             gap: 0.6rem;
         }
         .btn-portal-submit:hover {
-            background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
-            box-shadow: 0 8px 22px rgba(2, 132, 199, 0.45);
+            background: linear-gradient(135deg, #047857 0%, #064e3b 100%);
+            box-shadow: 0 8px 24px rgba(5, 150, 105, 0.45);
             transform: translateY(-1px);
         }
         .btn-portal-submit:active {
@@ -484,9 +505,10 @@ $favUrl = company_favicon_url();
         .form-bottom-links a {
             color: var(--primary);
             text-decoration: none;
-            font-weight: 600;
+            font-weight: 700;
         }
         .form-bottom-links a:hover {
+            color: var(--primary-dark);
             text-decoration: underline;
         }
 
@@ -512,6 +534,9 @@ $favUrl = company_favicon_url();
             .hero-footer {
                 display: none;
             }
+            .form-mobile-logo {
+                display: block;
+            }
             .fr-showcase-form {
                 padding: 2.5rem 2rem;
             }
@@ -529,7 +554,9 @@ $favUrl = company_favicon_url();
         <div class="hero-top">
             <div class="hero-brand">
                 <?php if ($logoUrl): ?>
-                    <img src="<?= e($logoUrl) ?>" alt="<?= e($company) ?>" class="hero-logo">
+                    <div class="hero-logo-box">
+                        <img src="<?= e($logoUrl) ?>" alt="<?= e($company) ?>" class="hero-logo">
+                    </div>
                 <?php else: ?>
                     <span class="hero-brand-name"><?= e($company) ?></span>
                 <?php endif; ?>
@@ -546,7 +573,7 @@ $favUrl = company_favicon_url();
             </h1>
 
             <p class="hero-desc">
-                Streamline member billing, monitor real-time stock allocation, and generate instant GST-compliant invoices.
+                Streamline customer billing, monitor real-time stock allocation, and generate instant GST-compliant invoices.
             </p>
 
             <ul class="hero-features">
@@ -554,13 +581,13 @@ $favUrl = company_favicon_url();
                     <div class="feat-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
                     </div>
-                    <span>Instant Member Lookup & Product Billing</span>
+                    <span>Fast Customer Product Billing &amp; Sales</span>
                 </li>
                 <li class="hero-feat-item">
                     <div class="feat-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
                     </div>
-                    <span>Real-time Company Stock Inventory Sync</span>
+                    <span>Real-time Health Inventory &amp; Stock Sync</span>
                 </li>
                 <li class="hero-feat-item">
                     <div class="feat-icon">
@@ -573,7 +600,7 @@ $favUrl = company_favicon_url();
 
         <div class="hero-footer">
             <span>
-                <svg style="width:14px;height:14px;color:#10b981" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <svg style="width:14px;height:14px;color:#34d399" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                 256-bit SSL Encrypted Access
             </span>
             <span>v2.4 Live</span>
@@ -583,8 +610,13 @@ $favUrl = company_favicon_url();
     <!-- Right Login Form -->
     <div class="fr-showcase-form">
         <div class="form-header">
+            <?php if ($logoUrl): ?>
+            <div class="form-mobile-logo">
+                <img src="<?= e($logoUrl) ?>" alt="<?= e($company) ?>">
+            </div>
+            <?php endif; ?>
             <h2>Franchise Sign In</h2>
-            <p>Enter your franchise credentials to access your dashboard</p>
+            <p>Enter your franchise credentials to access your terminal</p>
         </div>
 
         <?php if ($flash && !empty($flash['message'])): ?>
@@ -636,8 +668,8 @@ $favUrl = company_favicon_url();
         </form>
 
         <div class="form-bottom-links">
-            <span>Are you an MLM member? <a href="../user/login.php">Member Login →</a></span>
-            <a href="../index.php">← Back to Home</a>
+            <span>Interested in a Franchise? <a href="../index.php#franchiseBanner">Apply Online →</a></span>
+            <a href="../index.php">← Back to Store</a>
         </div>
     </div>
 </div>

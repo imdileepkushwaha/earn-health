@@ -246,7 +246,7 @@ function db_admin_stream_backup(PDO $pdo, string $dbName): void
     };
 
     $meta = json_encode([
-        'app' => 'binarymlm',
+        'app' => 'EarnHealth',
         'marker' => db_admin_backup_marker(),
         'database' => $dbName,
         'created' => date('c'),

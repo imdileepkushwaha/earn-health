@@ -45,12 +45,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --brand-primary: #0284c7;
-            --brand-primary-hover: #0369a1;
-            --brand-accent: #0ea5e9;
-            --bg-dark: #0b132b;
-            --card-glass: rgba(255, 255, 255, 0.96);
-            --border-glass: rgba(255, 255, 255, 0.2);
+            --brand-primary: #059669;
+            --brand-primary-hover: #047857;
+            --brand-accent: #34d399;
+            --bg-dark: #041f17;
+            --card-glass: rgba(255, 255, 255, 0.98);
+            --border-glass: rgba(255, 255, 255, 0.3);
             --text-main: #0f172a;
             --text-muted: #64748b;
         }
@@ -61,7 +61,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             align-items: center;
             justify-content: center;
-            background: radial-gradient(circle at 10% 20%, #1e293b 0%, #0f172a 45%, #080d1a 100%);
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(5, 150, 105, 0.35) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(13, 148, 136, 0.28) 0px, transparent 50%),
+                radial-gradient(at 50% 100%, rgba(6, 78, 59, 0.42) 0px, transparent 50%);
             padding: 1.5rem;
             position: relative;
             overflow-x: hidden;
@@ -75,12 +79,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         .bg-mesh-1 {
             width: 480px; height: 480px;
-            background: linear-gradient(135deg, #0284c7, #38bdf8);
+            background: linear-gradient(135deg, rgba(5, 150, 105, 0.45), rgba(52, 211, 153, 0.25));
             top: -100px; left: -100px;
         }
         .bg-mesh-2 {
             width: 450px; height: 450px;
-            background: linear-gradient(135deg, #10b981, #06b6d4);
+            background: linear-gradient(135deg, rgba(13, 148, 136, 0.4), rgba(245, 158, 11, 0.2));
             bottom: -80px; right: -80px;
         }
         .card-wrap {
@@ -95,18 +99,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             -webkit-backdrop-filter: blur(20px);
             border-radius: 24px;
             padding: 2.75rem 2.5rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.8);
         }
         .card-head {
             text-align: center;
             margin-bottom: 2rem;
         }
+        .brand-logo-wrap {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #ffffff;
+            padding: 0.6rem 1.25rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            border: 1px solid #f1f5f9;
+            margin-bottom: 1.25rem;
+        }
         .brand-logo {
-            max-height: 48px;
-            max-width: 170px;
+            height: 42px;
+            width: auto;
+            max-width: 200px;
             object-fit: contain;
-            margin-bottom: 0.85rem;
+            display: block;
         }
         .title {
             font-size: 1.55rem;
@@ -124,11 +140,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: inline-flex;
             align-items: center;
             gap: 0.4rem;
-            background: #e0f2fe;
-            color: #0369a1;
+            background: #ecfdf5;
+            color: #047857;
+            border: 1px solid #a7f3d0;
             font-size: 0.75rem;
             font-weight: 700;
-            padding: 0.25rem 0.75rem;
+            padding: 0.28rem 0.85rem;
             border-radius: 9999px;
             margin-top: 0.75rem;
             text-transform: uppercase;
@@ -185,7 +202,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .input-box input:focus {
             background: #ffffff;
             border-color: var(--brand-primary);
-            box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.15);
+            box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.2);
         }
         .input-box input:focus + svg,
         .input-box:focus-within svg {
@@ -198,11 +215,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-weight: 700;
             font-family: inherit;
             color: #ffffff;
-            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
             border: none;
             border-radius: 12px;
             cursor: pointer;
-            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+            box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35);
             transition: all 0.2s ease;
             margin-top: 0.5rem;
             display: flex;
@@ -212,7 +229,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         .btn-submit:hover {
             transform: translateY(-1px);
-            box-shadow: 0 8px 20px rgba(2, 132, 199, 0.45);
+            background: linear-gradient(135deg, #047857 0%, #064e3b 100%);
+            box-shadow: 0 8px 22px rgba(5, 150, 105, 0.45);
         }
         .card-foot {
             margin-top: 2rem;
@@ -228,6 +246,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-weight: 700;
         }
         .card-foot a:hover {
+            color: var(--brand-primary-hover);
             text-decoration: underline;
         }
     </style>
@@ -241,12 +260,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="auth-card">
         <div class="card-head">
             <?php if ($logoUrl): ?>
-                <img src="<?= e($logoUrl) ?>" alt="<?= e($company) ?>" class="brand-logo">
+                <div class="brand-logo-wrap">
+                    <img src="<?= e($logoUrl) ?>" alt="<?= e($company) ?>" class="brand-logo">
+                </div>
             <?php endif; ?>
             <h1 class="title">Reset Password</h1>
             <p class="subtitle">Verify your franchise credentials to set a new password</p>
             <span class="badge-pill">
-                <svg style="width:14px;height:14px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                <svg style="width:14px;height:14px;color:#047857" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
                 Franchise Recovery
             </span>
         </div>

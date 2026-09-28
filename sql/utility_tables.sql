@@ -1,5 +1,5 @@
--- Utility Management tables for binarymlm_db
-USE binarymlm_db;
+-- Utility Management tables for earnhealth_db
+USE earnhealth_db;
 
 CREATE TABLE IF NOT EXISTS countries (
     id INT AUTO_INCREMENT PRIMARY KEY,

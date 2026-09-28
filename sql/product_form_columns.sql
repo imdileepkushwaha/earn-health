@@ -1,5 +1,5 @@
 -- Product form wizard columns + gallery
-USE binarymlm_db;
+USE earnhealth_db;
 
 ALTER TABLE products
   ADD COLUMN IF NOT EXISTS slug VARCHAR(180) NULL AFTER name,

@@ -26,7 +26,7 @@ $featFranchise = feature_module_allowed('franchise');
 
 $utilityPages = [
     'countries', 'states', 'cities', 'banks', 'bank-accounts',
-    'news', 'direct-member-login',
+    'news', 'direct-franchise-login',
 ];
 $utilityOpen = in_array($currentPage, $utilityPages, true);
 
@@ -46,6 +46,7 @@ $productOpen = in_array($currentPage, $productPages, true);
 $franchisePages = [
     'franchisee-types', 'franchisee-add', 'franchisee-report',
     'franchisee-purchase', 'franchisee-purchase-report', 'franchisee-stock',
+    'wallets', 'direct-franchise-login',
 ];
 $franchiseOpen = in_array($currentPage, $franchisePages, true);
 
@@ -156,7 +157,7 @@ $chevronDown = '<svg class="nav-chevron" viewBox="0 0 24 24" fill="none" stroke=
                     </span>
                 </a>
 
-                <div class="nav-group <?= $membersOpen ? 'open' : '' ?>" data-nav-group>
+                <div style="display:none" class="nav-group <?= $membersOpen ? 'open' : '' ?>" data-nav-group>
                     <button type="button" class="nav-link nav-group-toggle <?= $membersOpen ? 'active' : '' ?>" data-nav-toggle>
                         <span class="nav-link-left">
                             <?= nav_ico($icoUsers) ?>
@@ -205,7 +206,7 @@ $chevronDown = '<svg class="nav-chevron" viewBox="0 0 24 24" fill="none" stroke=
                         <a href="banks.php" class="<?= $currentPage === 'banks' ? 'active' : '' ?>"><span class="dot"></span>Add Bank</a>
                         <a href="bank-accounts.php" class="<?= $currentPage === 'bank-accounts' ? 'active' : '' ?>"><span class="dot"></span>Bank Account Add</a>
                         <a href="news.php" class="<?= $currentPage === 'news' ? 'active' : '' ?>"><span class="dot"></span>News Add</a>
-                        <a href="direct-member-login.php" class="<?= $currentPage === 'direct-member-login' ? 'active' : '' ?>"><span class="dot"></span>Direct Member Login</a>
+                        <a href="direct-franchise-login.php" class="<?= $currentPage === 'direct-franchise-login' ? 'active' : '' ?>"><span class="dot"></span>Direct Franchise Login</a>
                     </div>
                 </div>
                 <?php endif; ?>
@@ -255,6 +256,8 @@ $chevronDown = '<svg class="nav-chevron" viewBox="0 0 24 24" fill="none" stroke=
                         <a href="franchisee-purchase.php" class="<?= $currentPage === 'franchisee-purchase' ? 'active' : '' ?>"><span class="dot"></span>Product Purchase</a>
                         <a href="franchisee-purchase-report.php" class="<?= $currentPage === 'franchisee-purchase-report' ? 'active' : '' ?>"><span class="dot"></span>Product Purchase Report</a>
                         <a href="franchisee-stock.php" class="<?= $currentPage === 'franchisee-stock' ? 'active' : '' ?>"><span class="dot"></span>Stock Details</a>
+                        <a href="wallets.php" class="<?= $currentPage === 'wallets' ? 'active' : '' ?>"><span class="dot"></span>Franchise Wallets</a>
+                        <a href="direct-franchise-login.php" class="<?= $currentPage === 'direct-franchise-login' ? 'active' : '' ?>"><span class="dot"></span>Direct Franchise Login</a>
                     </div>
                 </div>
                 <?php endif; ?>
@@ -362,7 +365,7 @@ $chevronDown = '<svg class="nav-chevron" viewBox="0 0 24 24" fill="none" stroke=
                     <div class="nav-submenu">
                         <a href="reports.php" class="<?= $currentPage === 'reports' ? 'active' : '' ?>"><span class="dot"></span>Overview</a>
                         <a href="report-commission.php" class="<?= $currentPage === 'report-commission' ? 'active' : '' ?>"><span class="dot"></span>Commission Report</a>
-                        <a href="report-joining.php" class="<?= $currentPage === 'report-joining' ? 'active' : '' ?>"><span class="dot"></span>Joining Report</a>
+                        <!-- <a href="report-joining.php" class="<?= $currentPage === 'report-joining' ? 'active' : '' ?>"><span class="dot"></span>Joining Report</a> -->
                         <?php if ($featPackages): ?>
                         <a href="report-package-sales.php" class="<?= $currentPage === 'report-package-sales' ? 'active' : '' ?>"><span class="dot"></span>Package Sales</a>
                         <?php endif; ?>
@@ -371,9 +374,9 @@ $chevronDown = '<svg class="nav-chevron" viewBox="0 0 24 24" fill="none" stroke=
                         <a href="report-binary-closing.php" class="<?= $currentPage === 'report-binary-closing' ? 'active' : '' ?>"><span class="dot"></span>Binary Closing</a>
                         <?php endif; ?>
                         <a href="tds-report.php" class="<?= $currentPage === 'tds-report' ? 'active' : '' ?>"><span class="dot"></span>TDS Report</a>
-                        <?php if ($featProducts): ?>
+                        <!-- <?php if ($featProducts): ?>
                         <a href="product-orders.php" class="<?= $currentPage === 'product-orders' ? 'active' : '' ?>"><span class="dot"></span>Product Orders</a>
-                        <?php endif; ?>
+                        <?php endif; ?> -->
                     </div>
                 </div>
                 <?php endif; ?>

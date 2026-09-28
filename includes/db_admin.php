@@ -23,7 +23,7 @@ function db_admin_default_credentials(): array
         'offline' => [
             'host' => 'localhost',
             'port' => '3306',
-            'name' => 'binarymlm_db',
+            'name' => 'earnhealth_db',
             'user' => 'root',
             'pass' => '',
         ],

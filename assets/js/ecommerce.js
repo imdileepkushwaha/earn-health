@@ -232,9 +232,8 @@
         });
     });
 
-    // Deals pill
-    const dealsBtn = document.querySelector('[data-strip-deals]');
-    if (dealsBtn) {
+    // Deals pills (desktop + mobile)
+    document.querySelectorAll('[data-strip-deals]').forEach(dealsBtn => {
         dealsBtn.addEventListener('click', (e) => {
             e.preventDefault();
             const cards = document.querySelectorAll('.ec-card');
@@ -251,7 +250,134 @@
                 catalog.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         });
+    });
+
+    // Mobile Navigation Drawer
+    const mobileDrawer = document.getElementById('ecMobileDrawer');
+    const menuToggle = document.getElementById('ecMobileMenuToggle');
+    const drawerClose = document.getElementById('ecDrawerClose');
+    const drawerBackdrop = document.getElementById('ecDrawerBackdrop');
+
+    function openMobileDrawer() {
+        if (mobileDrawer) {
+            mobileDrawer.classList.add('is-open');
+            document.body.classList.add('ec-drawer-open');
+        }
     }
+
+    function closeMobileDrawer() {
+        if (mobileDrawer) {
+            mobileDrawer.classList.remove('is-open');
+            document.body.classList.remove('ec-drawer-open');
+        }
+    }
+
+    if (menuToggle) {
+        menuToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            openMobileDrawer();
+        });
+    }
+
+    if (drawerClose) {
+        drawerClose.addEventListener('click', closeMobileDrawer);
+    }
+
+    if (drawerBackdrop) {
+        drawerBackdrop.addEventListener('click', closeMobileDrawer);
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && mobileDrawer && mobileDrawer.classList.contains('is-open')) {
+            closeMobileDrawer();
+        }
+    });
+
+    // Categories Management (Desktop Popover Dropdown + Mobile Bottom Sheet Modal)
+    const catDropdown = document.getElementById('ecCatDropdown');
+    const catDropdownBtn = document.getElementById('ecCatDropdownBtn');
+    const mobileCatSheet = document.getElementById('ecMobileCatSheet');
+    const catSheetBackdrop = document.getElementById('ecCatSheetBackdrop');
+    const catSheetClose = document.getElementById('ecCatSheetClose');
+
+    // Mobile Bottom Sheet open/close
+    function openMobileCatSheet() {
+        if (!mobileCatSheet) return;
+        mobileCatSheet.classList.add('is-open');
+        mobileCatSheet.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('ec-catsheet-open');
+    }
+
+    function closeMobileCatSheet() {
+        if (!mobileCatSheet) return;
+        mobileCatSheet.classList.remove('is-open');
+        mobileCatSheet.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('ec-catsheet-open');
+    }
+
+    // Desktop Dropdown open/close
+    function closeDesktopCatDropdown() {
+        if (!catDropdown) return;
+        catDropdown.classList.remove('is-open');
+        catDropdownBtn?.setAttribute('aria-expanded', 'false');
+    }
+
+    if (catDropdown && catDropdownBtn) {
+        catDropdownBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (window.innerWidth <= 768) {
+                // On mobile, trigger the bottom sheet modal
+                closeDesktopCatDropdown();
+                openMobileCatSheet();
+            } else {
+                // On desktop, toggle dropdown panel
+                const isOpen = catDropdown.classList.toggle('is-open');
+                catDropdownBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            }
+        });
+
+        // Close desktop dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!catDropdown.contains(e.target)) {
+                closeDesktopCatDropdown();
+            }
+        });
+
+        // Close desktop submenu when item selected
+        catDropdown.querySelectorAll('.ec-submenu-link, .ec-submenu-foot-link').forEach(link => {
+            link.addEventListener('click', () => {
+                closeDesktopCatDropdown();
+            });
+        });
+    }
+
+    // Mobile Sheet interactions
+    if (mobileCatSheet) {
+        if (catSheetBackdrop) {
+            catSheetBackdrop.addEventListener('click', closeMobileCatSheet);
+        }
+
+        if (catSheetClose) {
+            catSheetClose.addEventListener('click', closeMobileCatSheet);
+        }
+
+        // Close mobile sheet on any category selection
+        mobileCatSheet.querySelectorAll('.ec-catsheet-link, .ec-catsheet-deal-btn').forEach(link => {
+            link.addEventListener('click', (e) => {
+                closeMobileCatSheet();
+            });
+        });
+    }
+
+    // Global ESC key listener for both modals
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeDesktopCatDropdown();
+            closeMobileCatSheet();
+        }
+    });
 
     // Search bar filter
     const searchInput = document.getElementById('ecProductSearch');

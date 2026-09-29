@@ -249,6 +249,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: var(--brand-primary-hover);
             text-decoration: underline;
         }
+
+        @media (max-width: 480px) {
+            body { padding: 1rem 0.65rem; }
+            .auth-card { padding: 1.75rem 1.25rem; border-radius: 18px; }
+            .title { font-size: 1.45rem; }
+            .subtitle { font-size: 0.82rem; }
+            .input-box input { font-size: 16px; padding: 0.75rem 0.85rem 0.75rem 2.65rem; }
+            .input-box svg { left: 11px; width: 17px; height: 17px; }
+            .btn-submit { padding: 0.8rem; font-size: 0.95rem; }
+        }
     </style>
 </head>
 <body>

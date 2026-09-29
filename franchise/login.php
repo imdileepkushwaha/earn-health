@@ -53,9 +53,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$company = setting('company_name', 'Binary MLM');
+$company = setting('company_name', 'Earn Health');
 $logoUrl = company_logo_url();
 $favUrl = company_favicon_url();
+$phone = setting('contact_phone', '+91 98765 43210');
+$whatsappRaw = (string) setting('contact_whatsapp', '919876543210');
+$whatsapp = preg_replace('/\D+/', '', $whatsappRaw) ?: '919876543210';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -512,12 +515,128 @@ $favUrl = company_favicon_url();
             text-decoration: underline;
         }
 
+        /* Live Status Dot */
+        .fr-live-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #10b981;
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+            animation: frPulse 2s infinite;
+            display: inline-block;
+        }
+        @keyframes frPulse {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        /* Mobile Topbar Navigation */
+        .fr-mobile-topbar {
+            display: none;
+        }
+
+        /* Terminal Authorization Badge */
+        .fr-terminal-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            color: #047857;
+            font-size: 0.74rem;
+            font-weight: 700;
+            padding: 0.32rem 0.8rem;
+            border-radius: 9999px;
+            margin-bottom: 0.85rem;
+            letter-spacing: 0.03em;
+        }
+
+        /* Trust & Security Strip */
+        .fr-trust-pills {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid #f1f5f9;
+        }
+        .fr-trust-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.74rem;
+            font-weight: 700;
+            color: var(--text-slate);
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 0.28rem 0.65rem;
+            border-radius: 9999px;
+        }
+
+        /* Support Assistance Card */
+        .fr-support-card {
+            margin-top: 1.25rem;
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+            border: 1px solid #a7f3d0;
+            border-radius: 14px;
+            padding: 0.85rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .fr-supp-icon {
+            font-size: 1.35rem;
+            flex-shrink: 0;
+        }
+        .fr-supp-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .fr-supp-info strong {
+            display: block;
+            font-size: 0.82rem;
+            color: #065f46;
+            font-weight: 800;
+            line-height: 1.25;
+        }
+        .fr-supp-info span {
+            display: block;
+            font-size: 0.72rem;
+            color: #047857;
+            line-height: 1.3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .fr-supp-btn {
+            font-size: 0.75rem;
+            font-weight: 800;
+            background: #059669;
+            color: #ffffff !important;
+            padding: 0.4rem 0.75rem;
+            border-radius: 8px;
+            white-space: nowrap;
+            transition: background 0.18s;
+            flex-shrink: 0;
+            text-decoration: none;
+        }
+        .fr-supp-btn:hover {
+            background: #047857;
+        }
+
+        .fr-mob-copyright {
+            display: none;
+        }
+
         /* Responsive Breakpoints */
         @media (max-width: 900px) {
             .fr-showcase-wrap {
                 grid-template-columns: 1fr;
                 max-width: 480px;
-                border-radius: 20px;
+                border-radius: 24px;
             }
             .fr-showcase-hero {
                 padding: 2.25rem 2rem;
@@ -534,11 +653,212 @@ $favUrl = company_favicon_url();
             .hero-footer {
                 display: none;
             }
-            .form-mobile-logo {
-                display: block;
-            }
             .fr-showcase-form {
                 padding: 2.5rem 2rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body.fr-portal-body {
+                padding: 1.25rem 0.85rem 3rem;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: flex-start;
+                min-height: 100vh;
+            }
+
+            .fr-showcase-hero {
+                display: none; /* Hide heavy showcase column on mobile */
+            }
+
+            .fr-mobile-topbar {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                width: 100%;
+                max-width: 440px;
+                margin-bottom: 0.85rem;
+                padding: 0 0.25rem;
+            }
+            .fr-mob-back {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.35rem;
+                color: #e2e8f0;
+                font-size: 0.82rem;
+                font-weight: 600;
+                padding: 0.4rem 0.75rem;
+                border-radius: 9999px;
+                background: rgba(255, 255, 255, 0.08);
+                border: 1px solid rgba(255, 255, 255, 0.14);
+                transition: all 0.2s ease;
+                text-decoration: none;
+            }
+            .fr-mob-back:hover {
+                background: rgba(255, 255, 255, 0.16);
+                color: #ffffff;
+            }
+            .fr-mob-status {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.4rem;
+                font-size: 0.74rem;
+                font-weight: 700;
+                color: #6ee7b7;
+                background: rgba(5, 150, 105, 0.2);
+                border: 1px solid rgba(52, 211, 153, 0.35);
+                padding: 0.3rem 0.65rem;
+                border-radius: 9999px;
+            }
+            .fr-mob-help {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.35rem;
+                color: #fef08a;
+                font-size: 0.8rem;
+                font-weight: 700;
+                padding: 0.4rem 0.75rem;
+                border-radius: 9999px;
+                background: rgba(245, 158, 11, 0.15);
+                border: 1px solid rgba(245, 158, 11, 0.35);
+                transition: all 0.2s ease;
+                text-decoration: none;
+            }
+            .fr-mob-help:hover {
+                background: rgba(245, 158, 11, 0.25);
+            }
+
+            .fr-showcase-wrap {
+                max-width: 440px;
+                width: 100%;
+                border-radius: 24px;
+                box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.45);
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                background: #ffffff;
+            }
+
+            .fr-showcase-form {
+                padding: 2.25rem 1.75rem 2rem;
+            }
+
+            .form-mobile-logo {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                background: #f8fafc;
+                border: 1.5px solid var(--border);
+                border-radius: 16px;
+                padding: 0.65rem 1.25rem;
+                margin: 0 auto 1.15rem;
+                box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+            }
+            .form-mobile-logo img {
+                height: 42px;
+                width: auto;
+                max-width: 190px;
+                object-fit: contain;
+                display: block;
+            }
+
+            .form-header {
+                text-align: center;
+                margin-bottom: 1.65rem;
+            }
+            .form-header h2 {
+                font-size: 1.65rem;
+                font-weight: 800;
+                color: var(--text-dark);
+            }
+            .form-header p {
+                font-size: 0.86rem;
+                color: var(--text-muted);
+                margin-top: 0.25rem;
+            }
+
+            .form-input {
+                height: 48px;
+                font-size: 16px; /* prevent automatic iOS input zoom */
+                border-radius: 12px;
+            }
+
+            .btn-portal-submit {
+                height: 50px;
+                font-size: 1rem;
+                border-radius: 12px;
+            }
+
+            .fr-mob-copyright {
+                display: block;
+                font-size: 0.72rem;
+                color: #94a3b8;
+                text-align: center;
+                margin-top: 1.5rem;
+                max-width: 440px;
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body.fr-portal-body {
+                padding: 0.85rem 0.6rem 2.5rem;
+            }
+            .fr-mobile-topbar {
+                margin-bottom: 0.65rem;
+            }
+            .fr-showcase-wrap {
+                border-radius: 20px;
+            }
+            .fr-showcase-form {
+                padding: 1.75rem 1.15rem;
+            }
+            .form-header h2 {
+                font-size: 1.45rem;
+            }
+            .form-header p {
+                font-size: 0.8rem;
+            }
+            .form-input {
+                height: 46px;
+                font-size: 16px;
+                padding-left: 2.65rem;
+            }
+            .input-icon {
+                left: 11px;
+                width: 17px;
+                height: 17px;
+            }
+            .btn-portal-submit {
+                height: 48px;
+                font-size: 0.96rem;
+            }
+            .fr-support-card {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+                gap: 0.6rem;
+                padding: 0.85rem;
+            }
+            .fr-supp-btn {
+                width: 100%;
+                text-align: center;
+                justify-content: center;
+                padding: 0.55rem;
+                font-size: 0.82rem;
+            }
+            .fr-trust-pills {
+                gap: 0.35rem;
+            }
+            .fr-trust-pill {
+                font-size: 0.7rem;
+                padding: 0.22rem 0.55rem;
+            }
+            .form-bottom-links {
+                flex-direction: column;
+                align-items: center;
+                gap: 0.65rem;
+                text-align: center;
+                font-size: 0.82rem;
             }
         }
     </style>
@@ -547,6 +867,22 @@ $favUrl = company_favicon_url();
 
 <div class="ambient-glow glow-1"></div>
 <div class="ambient-glow glow-2"></div>
+
+<!-- Mobile Sleek Topbar -->
+<div class="fr-mobile-topbar">
+    <a href="../index.php" class="fr-mob-back" title="Return to store homepage">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+        <span>Store</span>
+    </a>
+    <span class="fr-mob-status">
+        <span class="fr-live-dot" aria-hidden="true"></span>
+        <span>Terminal Online</span>
+    </span>
+    <a href="https://wa.me/<?= e($whatsapp) ?>?text=<?= urlencode('Hello, I need assistance logging into Earn Health Franchise Terminal.') ?>" target="_blank" rel="noopener" class="fr-mob-help" title="Franchise WhatsApp Helpdesk">
+        <span>Help</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+    </a>
+</div>
 
 <div class="fr-showcase-wrap">
     <!-- Left Hero Showcase -->
@@ -612,11 +948,19 @@ $favUrl = company_favicon_url();
         <div class="form-header">
             <?php if ($logoUrl): ?>
             <div class="form-mobile-logo">
-                <img src="<?= e($logoUrl) ?>" alt="<?= e($company) ?>">
+                <a href="../index.php" aria-label="<?= e($company) ?>">
+                    <img src="<?= e($logoUrl) ?>" alt="<?= e($company) ?>">
+                </a>
             </div>
             <?php endif; ?>
+
+            <div class="fr-terminal-badge">
+                <span class="fr-live-dot" aria-hidden="true"></span>
+                <span>Authorized Franchise Terminal</span>
+            </div>
+
             <h2>Franchise Sign In</h2>
-            <p>Enter your franchise credentials to access your terminal</p>
+            <p>Access your store inventory, retail billing &amp; customer orders</p>
         </div>
 
         <?php if ($flash && !empty($flash['message'])): ?>
@@ -638,7 +982,7 @@ $favUrl = company_favicon_url();
                 <label for="loginInput">Franchise Code or Username</label>
                 <div class="input-group">
                     <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                    <input type="text" id="loginInput" name="login" class="form-input" value="<?= e($_POST['login'] ?? '') ?>" placeholder="e.g. FR0001 or Username" required autofocus>
+                    <input type="text" id="loginInput" name="login" class="form-input" value="<?= e($_POST['login'] ?? '') ?>" placeholder="e.g. FR0001 or Username" autocomplete="username" required autofocus>
                 </div>
             </div>
 
@@ -646,8 +990,8 @@ $favUrl = company_favicon_url();
                 <label for="passwordInput">Password</label>
                 <div class="input-group">
                     <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                    <input type="password" id="passwordInput" name="password" class="form-input" placeholder="••••••••" required>
-                    <button type="button" class="pass-toggle-btn" id="togglePasswordBtn" title="Toggle password visibility">
+                    <input type="password" id="passwordInput" name="password" class="form-input" placeholder="••••••••" autocomplete="current-password" required>
+                    <button type="button" class="pass-toggle-btn" id="togglePasswordBtn" title="Toggle password visibility" aria-label="Toggle password visibility">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                     </button>
                 </div>
@@ -667,11 +1011,44 @@ $favUrl = company_favicon_url();
             </button>
         </form>
 
+        <!-- Trust & Security Strip -->
+        <div class="fr-trust-pills">
+            <div class="fr-trust-pill">
+                <span>🛡️</span>
+                <span>256-Bit SSL</span>
+            </div>
+            <div class="fr-trust-pill">
+                <span>⚡</span>
+                <span>Live Stock Sync</span>
+            </div>
+            <div class="fr-trust-pill">
+                <span>🧾</span>
+                <span>GST Billing</span>
+            </div>
+        </div>
+
+        <!-- WhatsApp Support Desk Card -->
+        <div class="fr-support-card">
+            <div class="fr-supp-icon">💬</div>
+            <div class="fr-supp-info">
+                <strong>Need terminal assistance?</strong>
+                <span>Direct WhatsApp support for franchise partners</span>
+            </div>
+            <a href="https://wa.me/<?= e($whatsapp) ?>?text=<?= urlencode('Hello, I need help logging into Earn Health Franchise Terminal.') ?>" target="_blank" rel="noopener" class="fr-supp-btn">
+                WhatsApp Desk →
+            </a>
+        </div>
+
         <div class="form-bottom-links">
             <span>Interested in a Franchise? <a href="../index.php#franchiseBanner">Apply Online →</a></span>
             <a href="../index.php">← Back to Store</a>
         </div>
     </div>
+</div>
+
+<!-- Mobile Copyright -->
+<div class="fr-mob-copyright">
+    &copy; <?= date('Y') ?> <?= e($company) ?> • Authorized Franchise Network
 </div>
 
 <script>

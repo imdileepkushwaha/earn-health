@@ -1,22 +1,7 @@
 <?php
 require_once __DIR__ . '/config/database.php';
 
-$company = setting('company_name', 'Earn Health');
-$logoUrl = company_logo_url();
-$favUrl = company_favicon_url();
-$tagline = setting('company_tagline', '100% Pure Natural & Ayurvedic Wellness Store');
-
-$phone = setting('contact_phone', '+91 98765 43210');
-$whatsappRaw = (string) setting('contact_whatsapp', '919876543210');
-$whatsapp = preg_replace('/\D+/', '', $whatsappRaw) ?: '919876543210';
-$email = setting('contact_email', setting('support_email', 'support@earnhealth.com'));
-$address = setting('contact_address', 'Corporate Park, Health & Wellness Hub, India');
-
-// Fetch active categories
-$categories = [];
-try {
-    $categories = $pdo->query("SELECT id, name, description FROM product_categories WHERE status = 'active' ORDER BY id ASC")->fetchAll(PDO::FETCH_ASSOC);
-} catch (Throwable $e) {}
+$activeNav = 'home';
 
 // Fetch active products
 $products = [];
@@ -31,121 +16,9 @@ try {
 } catch (Throwable $e) {}
 
 $totalProducts = count($products);
+
+require_once __DIR__ . '/includes/site_header.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= e($company) ?> — Pure Ayurvedic Health, Nutrition &amp; Wellness Store</title>
-    <meta name="description" content="Shop 100% pure Ayurvedic formulations, herbal extracts, and premium wellness supplements online at <?= e($company) ?>. GMP Certified, Fast Delivery.">
-    <?php if ($favUrl): ?><link rel="icon" href="<?= e($favUrl) ?>"><?php endif; ?>
-
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-
-    <!-- E-Commerce Styles -->
-    <link rel="stylesheet" href="assets/css/ecommerce.css?v=<?= (int) @filemtime(__DIR__ . '/assets/css/ecommerce.css') ?>">
-</head>
-<body class="ec-body">
-
-    <!-- Top Announcement Bar -->
-    <div class="ec-topbar">
-        <div class="ec-shell ec-topbar-inner">
-            <div class="ec-topbar-msg">
-                <span class="badge-flash">FREE DELIVERY</span>
-                <span>Free shipping across India on orders above ₹999 | 100% Authentic Ayurvedic Formulas</span>
-            </div>
-            <div class="ec-topbar-links">
-                <span>📞 Support: <?= e($phone) ?></span>
-                <a href="https://wa.me/<?= e($whatsapp) ?>" target="_blank" rel="noopener">💬 WhatsApp</a>
-                <a href="franchise/login.php">🏢 Franchise Portal</a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Sticky Header -->
-    <header class="ec-header" id="ecHeader">
-        <div class="ec-shell">
-            <div class="ec-header-main">
-                <!-- Brand Logo -->
-                <a href="index.php" class="ec-logo-wrap">
-                    <?php if ($logoUrl): ?>
-                        <img src="<?= e($logoUrl) ?>" alt="<?= e($company) ?>" class="ec-logo-img">
-                    <?php else: ?>
-                        <div>
-                            <span class="ec-logo-text"><?= e($company) ?></span>
-                            <span class="ec-logo-tag">Wellness Store</span>
-                        </div>
-                    <?php endif; ?>
-                </a>
-
-                <!-- Live Search Bar -->
-                <div class="ec-search-bar">
-                    <input type="text" id="ecProductSearch" placeholder="Search Ayurvedic herbs, vitamins, supplements..." autocomplete="off">
-                    <button type="button" aria-label="Search">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    </button>
-                </div>
-
-                <!-- Header Actions -->
-                <div class="ec-actions">
-                    <a href="franchise/login.php" class="ec-btn-portal" title="Franchise Partner Login">
-                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                        <span>Franchise Login</span>
-                    </a>
-                    
-                    <button type="button" class="ec-btn-cart" data-open-cart aria-label="View Shopping Cart">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
-                        <span>Cart</span>
-                        <span class="ec-cart-count" id="cartBadge">0</span>
-                    </button>
-            </div>
-        </div>
-
-        <!-- Categories & Navigation Bar Strip -->
-        <nav class="ec-nav-strip" aria-label="Categories Navigation">
-            <div class="ec-shell">
-                <div class="ec-nav-bar">
-                    <div class="ec-nav-left">
-                        <button type="button" class="ec-nav-link is-active" data-strip-cat="all">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-                            <span>All Products</span>
-                        </button>
-
-                        <?php foreach ($categories as $cat): 
-                            $cid = (int) $cat['id'];
-                            $cname = $cat['name'];
-                        ?>
-                        <button type="button" class="ec-nav-link" data-strip-cat="<?= $cid ?>">
-                            <span><?= e($cname) ?></span>
-                        </button>
-                        <?php endforeach; ?>
-                    </div>
-
-                    <div class="ec-nav-right">
-                        <a href="#catalog" class="ec-nav-link link-deals" data-strip-deals="true">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
-                            <span>Hot Deals</span>
-                            <span class="ec-nav-deal-tag">33% OFF</span>
-                        </a>
-
-                        <a href="#franchiseBanner" class="ec-nav-link link-franchise">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                            <span>Franchise Program</span>
-                        </a>
-
-                        <a href="#reviews" class="ec-nav-link link-reviews">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                            <span>Reviews</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </nav>
-    </header>
 
     <!-- Hero Showcase Banner -->
     <section class="ec-hero">
@@ -355,181 +228,269 @@ $totalProducts = count($products);
     </section>
 
     <!-- Why Choose Us Section -->
-    <section class="ec-section" id="whyUs" style="background:#fff;border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+    <section class="ec-section ec-why-section" id="whyUs">
         <div class="ec-shell">
-            <div style="text-align:center;max-width:680px;margin:0 auto 3rem">
-                <span class="ec-section-kicker">Our Quality Promise</span>
-                <h2 class="ec-section-title">Why Health Conscious Families Choose <?= e($company) ?></h2>
+            <div style="text-align:center;max-width:720px;margin:0 auto 3.5rem">
+                <div class="ec-why-badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                    The Pure Ayurveda Standard
+                </div>
+                <h2 class="ec-section-title" style="margin-bottom:0.75rem">Why Health-Conscious Families Choose <?= e($company) ?></h2>
+                <p style="color:var(--slate);font-size:1.02rem;line-height:1.6">Rooted in authentic Vedic traditions and validated by rigorous laboratory science. 100% pure herbal formulations crafted for enduring vitality.</p>
             </div>
 
-            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));gap:2rem">
-                <div style="text-align:center;padding:1.5rem">
-                    <div style="width:56px;height:56px;background:var(--primary-light);color:var(--primary);border-radius:50%;display:grid;place-items:center;margin:0 auto 1.25rem;font-size:1.5rem">🌿</div>
-                    <h4 style="font-family:var(--font-heading);font-size:1.1rem;margin-bottom:0.5rem">Wild-Crafted Herbs</h4>
-                    <p style="font-size:0.88rem;color:var(--slate)">Sourced responsibly from certified organic herbal farms and Himalayan valleys.</p>
+            <div class="ec-why-grid">
+                <!-- Card 1 -->
+                <div class="ec-why-card">
+                    <div class="ec-why-icon-box green">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+                            <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+                        </svg>
+                    </div>
+                    <span class="ec-why-pill green">Himalayan Sourced</span>
+                    <h3 class="ec-why-title">Wild-Crafted Herbs</h3>
+                    <p class="ec-why-desc">Responsibly handpicked at peak seasonal potency from pristine Himalayan valleys and certified organic Vedic farms.</p>
+                    <div class="ec-why-check">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                        100% Organically Sourced
+                    </div>
                 </div>
 
-                <div style="text-align:center;padding:1.5rem">
-                    <div style="width:56px;height:56px;background:var(--primary-light);color:var(--primary);border-radius:50%;display:grid;place-items:center;margin:0 auto 1.25rem;font-size:1.5rem">🔬</div>
-                    <h4 style="font-family:var(--font-heading);font-size:1.1rem;margin-bottom:0.5rem">Batch Lab Tested</h4>
-                    <p style="font-size:0.88rem;color:var(--slate)">Every batch is screened for heavy metals, pesticides, and verified active potency.</p>
+                <!-- Card 2 -->
+                <div class="ec-why-card">
+                    <div class="ec-why-icon-box blue">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 18h8"/>
+                            <path d="M3 22h18"/>
+                            <path d="M14 22a7 7 0 1 0 0-14h-1"/>
+                            <path d="M9 14h2"/>
+                            <path d="M9 12a2 2 0 0 1-2-2V6h6v4a2 2 0 0 1-2 2Z"/>
+                            <path d="M12 6V3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3"/>
+                        </svg>
+                    </div>
+                    <span class="ec-why-pill blue">NABL Accredited</span>
+                    <h3 class="ec-why-title">Triple-Stage Lab Tested</h3>
+                    <p class="ec-why-desc">Every batch undergoes rigorous multi-tier testing for heavy metals, pesticides, microbial safety, and active phyto-nutrients.</p>
+                    <div class="ec-why-check">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                        Zero Synthetic Fillers
+                    </div>
                 </div>
 
-                <div style="text-align:center;padding:1.5rem">
-                    <div style="width:56px;height:56px;background:var(--primary-light);color:var(--primary);border-radius:50%;display:grid;place-items:center;margin:0 auto 1.25rem;font-size:1.5rem">⚡</div>
-                    <h4 style="font-family:var(--font-heading);font-size:1.1rem;margin-bottom:0.5rem">High Bioavailability</h4>
-                    <p style="font-size:0.88rem;color:var(--slate)">Engineered with natural bio-enhancers like Piperine for maximum cellular absorption.</p>
+                <!-- Card 3 -->
+                <div class="ec-why-card">
+                    <div class="ec-why-icon-box amber">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                        </svg>
+                    </div>
+                    <span class="ec-why-pill amber">Fast Cellular Uptake</span>
+                    <h3 class="ec-why-title">4X Bioavailability</h3>
+                    <p class="ec-why-desc">Infused with natural bio-enhancers like organic Piperine and cold-pressed lipids for accelerated intestinal absorption and deeper nourish.</p>
+                    <div class="ec-why-check">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                        Maximum Bio-Potency
+                    </div>
                 </div>
 
-                <div style="text-align:center;padding:1.5rem">
-                    <div style="width:56px;height:56px;background:var(--primary-light);color:var(--primary);border-radius:50%;display:grid;place-items:center;margin:0 auto 1.25rem;font-size:1.5rem">🤝</div>
-                    <h4 style="font-family:var(--font-heading);font-size:1.1rem;margin-bottom:0.5rem">Direct Consumer Support</h4>
-                    <p style="font-size:0.88rem;color:var(--slate)">Dedicated wellness consultations and WhatsApp order tracking assistance.</p>
+                <!-- Card 4 -->
+                <div class="ec-why-card">
+                    <div class="ec-why-icon-box purple">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/>
+                            <path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4"/>
+                            <circle cx="20" cy="10" r="2"/>
+                        </svg>
+                    </div>
+                    <span class="ec-why-pill purple">Expert Care</span>
+                    <h3 class="ec-why-title">Doctor &amp; Vaidya Support</h3>
+                    <p class="ec-why-desc">Complimentary access to certified Ayurvedic practitioners for personalized dosage plans, lifestyle tips, and diet guidance.</p>
+                    <div class="ec-why-check">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                        Free 1-on-1 Consultation
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trust Certifications Bar -->
+            <div class="ec-trust-cert-strip">
+                <div class="ec-trust-cert-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <span>AYUSH Ministry Standard</span>
+                </div>
+                <div class="ec-trust-cert-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+                    <span>GMP Certified Facility</span>
+                </div>
+                <div class="ec-trust-cert-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm1-5.5a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1z"/></svg>
+                    <span>100% Vegetarian &amp; Pure</span>
+                </div>
+                <div class="ec-trust-cert-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    <span>Heavy Metal Screened</span>
+                </div>
+                <div class="ec-trust-cert-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    <span>Made with Pride in India</span>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Customer Reviews / Testimonials -->
-    <section class="ec-section" id="reviews">
+    <section class="ec-section ec-reviews-section" id="reviews">
         <div class="ec-shell">
-            <div style="text-align:center;max-width:680px;margin:0 auto 2.5rem">
-                <span class="ec-section-kicker">Verified Buyers</span>
-                <h2 class="ec-section-title">Real Results from Real Customers</h2>
+            <div style="text-align:center;max-width:700px;margin:0 auto 2.5rem">
+                <span class="ec-section-kicker">Verified Buyer Experiences</span>
+                <h2 class="ec-section-title">Real Results from Real Wellness Journeys</h2>
+                <p style="color:var(--slate);font-size:1.02rem;line-height:1.6">Authentic feedback from thousands of customers and certified franchise partners across India.</p>
             </div>
 
-            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));gap:1.5rem">
-                <div style="background:#fff;border:1px solid var(--border);border-radius:16px;padding:1.75rem;box-shadow:var(--shadow-sm)">
-                    <div style="color:var(--amber);margin-bottom:0.75rem;font-size:1.1rem">★★★★★</div>
-                    <p style="font-size:0.92rem;color:var(--dark);line-height:1.6;margin-bottom:1rem">
-                        "The Shilajit Resin has dramatically improved my daily energy levels. Genuine texture, easy to dissolve in warm milk, and I noticed the difference within 10 days."
-                    </p>
-                    <div style="display:flex;align-items:center;gap:0.75rem">
-                        <div style="width:40px;height:40px;border-radius:50%;background:#e0f2fe;color:#0284c7;display:grid;place-items:center;font-weight:800">RP</div>
-                        <div>
-                            <strong style="display:block;font-size:0.9rem">Rajesh Patel</strong>
-                            <small style="color:var(--muted)">Verified Buyer • Ahmedabad</small>
+            <!-- Aggregate Score Card -->
+            <div class="ec-reviews-summary-bar">
+                <div class="ec-rating-overall">
+                    <div class="ec-rating-big-num">4.9</div>
+                    <div>
+                        <div class="ec-rating-stars-wrap">
+                            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                            <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                         </div>
+                        <div class="ec-rating-count-text">Based on <strong>2,450+ verified customer reviews</strong> across India</div>
+                    </div>
+                </div>
+                <div class="ec-review-highlights">
+                    <div class="ec-highlight-box">
+                        <span class="ec-highlight-val">98.4%</span>
+                        <span class="ec-highlight-lbl">Satisfaction Rate</span>
+                    </div>
+                    <div class="ec-highlight-box">
+                        <span class="ec-highlight-val">10-14 Days</span>
+                        <span class="ec-highlight-lbl">Avg. Visible Energy Boost</span>
+                    </div>
+                    <div class="ec-highlight-box">
+                        <span class="ec-highlight-val">500+</span>
+                        <span class="ec-highlight-lbl">Franchise Centers</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Review Cards -->
+            <div class="ec-reviews-grid">
+                <!-- Review 1 -->
+                <div class="ec-review-card">
+                    <div class="ec-review-header">
+                        <div class="ec-review-avatar av-1">RP</div>
+                        <div class="ec-review-user-info">
+                            <div class="ec-review-name">
+                                Rajesh Patel
+                                <span class="ec-verified-pill">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                    Verified Buyer
+                                </span>
+                            </div>
+                            <span class="ec-review-loc">Ahmedabad, Gujarat</span>
+                        </div>
+                    </div>
+                    <div class="ec-review-stars">
+                        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    </div>
+                    <span class="ec-product-tag">🌿 Pure Himalayan Shilajit Resin (20g)</span>
+                    <h4 class="ec-review-title">"Incredible surge in daily energy and endurance"</h4>
+                    <p class="ec-review-text">
+                        "I have tested multiple Shilajit brands before, but Earn Health's resin has a genuine earthy aroma and dissolves seamlessly in lukewarm milk. Within 10 days my chronic afternoon fatigue vanished completely. Truly authentic quality!"
+                    </p>
+                    <div class="ec-review-footer">
+                        <span>Order #EH-89421</span>
+                        <span class="ec-recommend-badge">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                            Recommends this product
+                        </span>
                     </div>
                 </div>
 
-                <div style="background:#fff;border:1px solid var(--border);border-radius:16px;padding:1.75rem;box-shadow:var(--shadow-sm)">
-                    <div style="color:var(--amber);margin-bottom:0.75rem;font-size:1.1rem">★★★★★</div>
-                    <p style="font-size:0.92rem;color:var(--dark);line-height:1.6;margin-bottom:1rem">
-                        "Ashwagandha Gold is a staple for me now. Great for restful sleep and mental calmness after stressful work days. Delivery was fast and properly packaged."
-                    </p>
-                    <div style="display:flex;align-items:center;gap:0.75rem">
-                        <div style="width:40px;height:40px;border-radius:50%;background:#ecfdf5;color:#059669;display:grid;place-items:center;font-weight:800">SM</div>
-                        <div>
-                            <strong style="display:block;font-size:0.9rem">Sneha Mishra</strong>
-                            <small style="color:var(--muted)">Verified Buyer • Pune</small>
+                <!-- Review 2 -->
+                <div class="ec-review-card">
+                    <div class="ec-review-header">
+                        <div class="ec-review-avatar av-2">SM</div>
+                        <div class="ec-review-user-info">
+                            <div class="ec-review-name">
+                                Sneha Mishra
+                                <span class="ec-verified-pill">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                    Verified Buyer
+                                </span>
+                            </div>
+                            <span class="ec-review-loc">Pune, Maharashtra</span>
                         </div>
+                    </div>
+                    <div class="ec-review-stars">
+                        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    </div>
+                    <span class="ec-product-tag">🌿 Ashwagandha Gold Extract</span>
+                    <h4 class="ec-review-title">"Deep, restful sleep without any morning grogginess"</h4>
+                    <p class="ec-review-text">
+                        "High work stress had severely disrupted my sleep cycle for months. Taking Ashwagandha Gold after dinner brought back calm, restful sleep within a week. I wake up recharged and sharp. Delivery was prompt in secure packaging."
+                    </p>
+                    <div class="ec-review-footer">
+                        <span>Order #EH-78210</span>
+                        <span class="ec-recommend-badge">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                            Recommends this product
+                        </span>
                     </div>
                 </div>
 
-                <div style="background:#fff;border:1px solid var(--border);border-radius:16px;padding:1.75rem;box-shadow:var(--shadow-sm)">
-                    <div style="color:var(--amber);margin-bottom:0.75rem;font-size:1.1rem">★★★★★</div>
-                    <p style="font-size:0.92rem;color:var(--dark);line-height:1.6;margin-bottom:1rem">
-                        "We run an Earn Health franchise center in Indore. Products sell themselves because people see authentic results. Support from corporate team is top notch."
-                    </p>
-                    <div style="display:flex;align-items:center;gap:0.75rem">
-                        <div style="width:40px;height:40px;border-radius:50%;background:#fef3c7;color:#d97706;display:grid;place-items:center;font-weight:800">VK</div>
-                        <div>
-                            <strong style="display:block;font-size:0.9rem">Vikram Kulkarni</strong>
-                            <small style="color:var(--muted)">Franchise Owner • Indore</small>
+                <!-- Review 3 -->
+                <div class="ec-review-card">
+                    <div class="ec-review-header">
+                        <div class="ec-review-avatar av-3">VK</div>
+                        <div class="ec-review-user-info">
+                            <div class="ec-review-name">
+                                Dr. Vikram Kulkarni
+                                <span class="ec-verified-pill">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                    Franchise Partner
+                                </span>
+                            </div>
+                            <span class="ec-review-loc">Indore, Madhya Pradesh</span>
                         </div>
+                    </div>
+                    <div class="ec-review-stars">
+                        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    </div>
+                    <span class="ec-product-tag">🌿 Curcumin 95% + Triphala Juice</span>
+                    <h4 class="ec-review-title">"Outstanding bioavailability &amp; real wellness impact"</h4>
+                    <p class="ec-review-text">
+                        "We run an Earn Health franchise and consultation center in Indore. The organic formulations sell on repeat because patients experience tangible gut and joint relief. Corporate backend support and stock dispatch are world-class."
+                    </p>
+                    <div class="ec-review-footer">
+                        <span>Franchise ID #FR-4029</span>
+                        <span class="ec-recommend-badge">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
+                            Recommends this product
+                        </span>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Slide-Out Shopping Cart Drawer -->
-    <div class="ec-cart-drawer" id="ecCartDrawer">
-        <div class="ec-cart-backdrop" data-close-cart></div>
-        <div class="ec-cart-panel">
-            <div class="ec-cart-head">
-                <h3>Shopping Cart (<span class="ec-cart-count">0</span>)</h3>
-                <button type="button" class="ec-cart-close" data-close-cart aria-label="Close cart">×</button>
-            </div>
+<?php require_once __DIR__ . '/includes/site_footer.php'; ?>
 
-            <div class="ec-cart-items" id="cartItemsList">
-                <!-- Rendered dynamically via ecommerce.js -->
-            </div>
-
-            <div class="ec-cart-foot">
-                <div class="ec-cart-subtotal">
-                    <span>Estimated Total</span>
-                    <strong id="cartSubtotal">₹0.00</strong>
-                </div>
-                <button type="button" class="btn-ec-checkout" id="btnWhatsappCheckout" data-phone="<?= e($whatsapp) ?>">
-                    <span>💬 Order via WhatsApp / Checkout</span>
-                </button>
-                <div style="text-align:center;margin-top:0.65rem">
-                    <small style="color:var(--muted)">Instant delivery assistance &amp; UPI payment support</small>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modern E-Commerce Footer -->
-    <footer class="ec-footer">
-        <div class="ec-shell">
-            <div class="ec-footer-grid">
-                <div class="ec-footer-brand">
-                    <h4><?= e($company) ?></h4>
-                    <p style="margin-bottom:1.25rem;line-height:1.6">
-                        Pioneering accessible, standardized Ayurvedic nutrition and premium herbal wellness formulations crafted with purity and integrity.
-                    </p>
-                    <p style="font-size:0.85rem">📍 <?= e($address) ?></p>
-                    <p style="font-size:0.85rem">✉️ <?= e($email) ?></p>
-                    <p style="font-size:0.85rem">📞 <?= e($phone) ?></p>
-                </div>
-
-                <div class="ec-footer-col">
-                    <h5>Categories</h5>
-                    <ul>
-                        <?php foreach (array_slice($categories, 0, 5) as $cat): ?>
-                        <li><a href="#catalog"><?= e($cat['name']) ?></a></li>
-                        <?php endforeach; ?>
-                        <li><a href="#catalog">Best Sellers</a></li>
-                    </ul>
-                </div>
-
-                <div class="ec-footer-col">
-                    <h5>Quick Links</h5>
-                    <ul>
-                        <li><a href="#catalog">Shop All</a></li>
-                        <li><a href="#franchiseBanner">Franchise Business</a></li>
-                        <li><a href="contact.php">Contact Us</a></li>
-                        <li><a href="franchise/login.php">Franchise Login</a></li>
-                        <li><a href="admin/login.php">Admin Panel</a></li>
-                    </ul>
-                </div>
-
-                <div class="ec-footer-col">
-                    <h5>Franchise Enquiry</h5>
-                    <p style="margin-bottom:1rem;font-size:0.85rem">
-                        Interested in starting an Earn Health wellness center? Connect directly with our business team.
-                    </p>
-                    <a href="https://wa.me/<?= e($whatsapp) ?>?text=<?= urlencode('Hello, I am interested in opening an Earn Health franchise in my city.') ?>" 
-                       target="_blank" rel="noopener" class="btn-ec-primary" style="padding:0.65rem 1.25rem;font-size:0.88rem;display:inline-flex">
-                        Chat on WhatsApp →
-                    </a>
-                </div>
-            </div>
-
-            <div class="ec-footer-bottom">
-                <p>&copy; <?= date('Y') ?> <?= e($company) ?>. All rights reserved. 100% Ayurvedic &amp; GMP Certified.</p>
-                <div style="display:flex;gap:1.5rem;align-items:center">
-                    <span>UPI &bull; NetBanking &bull; Cards Accepted</span>
-                    <a href="admin/login.php" style="color:#64748b">Admin</a>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Interactive Scripts -->
-    <script src="assets/js/ecommerce.js?v=<?= (int) @filemtime(__DIR__ . '/assets/js/ecommerce.js') ?>"></script>
-</body>
-</html>
